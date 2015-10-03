@@ -28,12 +28,15 @@ function ensureAccount(req, res, next) {
   res.redirect('/');
 }
 
+var multer = require('multer');
+var upload = multer({ dest: 'uploads/' });
+
 exports = module.exports = function(app, passport) {
   //front end
   app.get('/', require('./views/index').init);
   app.get('/about/', require('./views/about/index').init);
-  app.get('/contact/', require('./views/contact/index').init);
-  app.post('/contact/', require('./views/contact/index').sendMessage);
+  app.get('/upload/', require('./views/upload/index').init);
+  app.post('/upload/', upload.single('filename'), require('./views/upload/index').upload);
 
   //sign up
   app.get('/signup/', require('./views/signup/index').init);
