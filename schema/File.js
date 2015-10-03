@@ -9,5 +9,8 @@ exports = module.exports = function(app, mongoose) {
     createdAt: { type: Date, default: Date.now },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   });
+  fileSchema.plugin(require('./plugins/pagedFind'));
+  fileSchema.index({ name: 1 });
+  fileSchema.set('autoIndex', (app.get('env') === 'development'));
   app.db.model('File', fileSchema);
 };

@@ -138,6 +138,10 @@ exports = module.exports = function(app, passport) {
   app.put('/admin/categories/:id/', require('./views/admin/categories/index').update);
   app.delete('/admin/categories/:id/', require('./views/admin/categories/index').delete);
 
+  //admin > files
+  app.get('/admin/files/', require('./views/admin/files/index').find);
+  app.get('/admin/files/:id/', require('./views/admin/files/index').read);
+
   //admin > search
   app.get('/admin/search/', require('./views/admin/search/index').find);
 
