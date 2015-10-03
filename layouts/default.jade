@@ -26,6 +26,9 @@ html
               li: a(href='/signup/') Sign Up
           ul.nav.navbar-nav.navbar-right
             if user && user.username
+              if user.admin
+                li: a(href='/admin')
+                  |  Admin
               li: a(href='#{user.defaultReturnUrl}')
                 i.fa.fa-user
                 |  #{user.username}
