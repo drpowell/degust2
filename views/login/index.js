@@ -21,10 +21,10 @@ var authParams = function(req, msg) {
   };
 };
 
-// If there is only 1 user, make them root
+// First user to login when we don't have an admin, make them admin
 var mayMakeRoot = function(db, user, next) {
-  db.models.User.count({}, function(err, n) {
-    if (n !== 1 || user.roles.admin) {
+  db.models.Admin.count({}, function(err, n) {
+    if (n > 0) {
       next();
     } else {
       console.log("Creating root user!");
