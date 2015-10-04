@@ -55,6 +55,9 @@ var check_settings = function(settings) {
         !check_array(settings.info_columns)) {
         return false;
     }
+    if (settings.ec_column && invalid.test(settings.ec_column)) {
+        return false;
+    }
     for (var i=0; i<settings.replicates.length; i+=1) {
         if (!check_array([settings.replicates[i][0]])) {
             return false;
@@ -206,6 +209,9 @@ var export_cols = function(settings) {
     settings.replicates.forEach(function(r) { 
         arr = arr.concat(r[1]); 
     });
+    if (settings.ec_column) {
+        arr.push(settings.ec_column);
+    }
     return arr;
 };
 
@@ -317,3 +323,56 @@ exports.dge_r_code = function(req, res, next){
     });
 };
 
+exports.kegg_titles = function(req,res,next) {
+    req.app.db.models.DESettings.findById(req.params.id).populate('file').exec(function (err, deSettings) {
+        if (err) {
+            return next(err);
+        }
+        if (deSettings===null) {
+            return next();
+        }
+
+        var kegg = fs.readFileSync(__dirname + "/kegg/pathway/map_title.tab", 'utf8');
+        var lst = kegg.toString().split(/\r?\n/).map(function(l) { return l.split(/\t/)});
+
+        var readOne = function(lst, buf) {
+            var codeTitle = lst.shift();
+            if (!codeTitle || codeTitle.length<2) {
+                var str = buf.map(function(l) {return l.join("\t");}).join("\n") + "\n";
+                res.setHeader('content-type', 'text/csv');
+                return res.send(str);
+            }
+            fs.readFile(__dirname + "/kegg/kgml/map/map"+codeTitle[0]+".xml", function(err, data) {
+                var ecs = [];
+                if (!err) {
+                    var re = /name="ec:([.\d]+)"/g;
+                    var m;
+                    do {
+                        m = re.exec(data);
+                        if (m) {
+                            ecs.push(m[1]);
+                        }
+                    } while (m);
+                }
+                buf.push([codeTitle[0], codeTitle[1], ecs.join(" ")]);
+                readOne(lst, buf);
+            });
+        };
+        readOne(lst, [["code","title","ec"]]);
+    });
+};
+/*
+getKeggTitles :: CGI String
+getKeggTitles =  liftIO $ do
+    ls <- map (splitOn "\t") . lines <$> Prelude.readFile "kegg/pathway/map_title.tab"
+    withEC <- mapM lookupEC ls
+    return $ unlines (map (intercalate "\t") $ header : withEC)
+  where
+    header = ["code","title","ec"]
+    lookupEC [] = return []
+    lookupEC line@(mp:_) = do
+        xml <- catch (Prelude.readFile $ "kegg/kgml/map/map"++mp++".xml")
+                     ((\_ -> return "" ) :: IOException -> IO String)
+        let ecs = xml =~ ("name=\"ec:([.\\d]+)\"" ::String) :: [[String]]
+        return $ line ++ [intercalate " " $ map (!!1) ecs]
+        */
