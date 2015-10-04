@@ -38,6 +38,35 @@ var get_settings = function(deSettings) {
 	return s;
 };
 
+// Check the settings are valid
+var check_settings = function(settings) {
+	var invalid = /[\\'"\n]/;
+
+	var check_array = function(arr) {
+		for (var i=0;i<arr.length;i+=1) {
+			if (invalid.test(arr[i])) {
+				return false;				
+			}
+		}
+		return true;
+	};
+
+	if (!check_array(settings.fc_columns) ||
+		!check_array(settings.info_columns)) {
+		return false;
+	}
+	for (var i=0; i<settings.replicates.length; i+=1) {
+		if (!check_array([settings.replicates[i][0]])) {
+			return false;
+		}
+		if (!check_array(settings.replicates[i][1])) {
+			return false;
+		}
+	}
+
+	return true;
+};
+
 exports.settings = function(req, res, next){
 	req.app.db.models.DESettings.findById(req.params.id).exec(function (err, settings) {
       	if (err) {
@@ -62,6 +91,11 @@ exports.saveSettings = function(req, res, next){
       	}
 
       	settings.settings = JSON.parse(req.body.settings);
+		if (!check_settings(settings.settings)) {
+			res.status(400).send("Invalid character in field");
+			return;
+		}
+
       	settings.save(function (err, s) {
 	      	if (err) {
     	    	return next(err);
@@ -237,9 +271,10 @@ exports.dge = function(req, res, next){
 		}
 
 		var prog = child_process.execFile("R", ['-q','--vanilla'], {}, function(err,_stdout,stderr) {
-			//console.log("stdout", stdout.toString());
-			//console.log("stderr", stderr.toString());
-
+			if (err) {
+				console.log('error',input,err);
+				return next();
+			}
 			var output = fs.readFileSync(tmpobj.name +"/output.txt", 'utf8');
 
 			tmpobj.removeCallback();

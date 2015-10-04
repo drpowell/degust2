@@ -70,7 +70,7 @@ save = (ev) ->
         $('#saving-modal .view').show()
      ).fail((x) ->
         log_error("ERROR",x)
-        $('#saving-modal .modal-body').html("Failed!")
+        $('#saving-modal .modal-body').html("Failed : #{x.responseText}")
         $('#saving-modal .view').hide()
      ).always(() ->
         $('#saving-modal').modal({'backdrop': true, 'keyboard' : true})
