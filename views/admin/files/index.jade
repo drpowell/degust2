@@ -46,14 +46,11 @@ block body
     table.table.table-striped
       thead
         tr
-          th
           th.stretch name
           th id
       tbody#results-rows
 
   script(type='text/template', id='tmpl-results-row')
-    td
-      input.btn.btn-default.btn-sm.btn-details(type='button', value='Edit')
     td <%- name %>
     td.nowrap <%= _id %>
 

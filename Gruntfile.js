@@ -66,6 +66,10 @@ module.exports = function(grunt) {
       }
     },
     watch: {
+      clientCoffee: {
+        files: ['public/degust/**/*.coffee'],
+        tasks: ['newer:coffeeify']
+      },
       clientJS: {
          files: [
           'public/layouts/**/*.js', '!public/layouts/**/*.min.js',
@@ -91,6 +95,32 @@ module.exports = function(grunt) {
           'public/less/**/*.less'
         ],
         tasks: ['less:layouts']
+      }
+    },
+    coffeeify: {
+      basic: {
+        options: {
+          transforms: ['coffeeify','hbsfy'],
+          //debug: true
+        },
+        files: [
+          {
+            src: ['public/degust/js/common-req.coffee'],
+            dest: 'public/degust/common.min.js'
+          },
+          {
+            src: ['public/degust/js/compare-req.coffee'],
+            dest: 'public/degust/compare.min.js'
+          },
+          {
+            src: ['public/degust/js/config-req.coffee'],
+            dest: 'public/degust/config.min.js'
+          },
+          {
+            src: ['public/degust/js/slickgrid-req.coffee'],
+            dest: 'public/degust/slickgrid.min.js'
+          },
+        ]
       }
     },
     uglify: {
@@ -164,6 +194,14 @@ module.exports = function(grunt) {
         ]
       }
     },
+    cssmin: {
+      options: { },
+      target: {
+        files: {
+         'public/degust/css/lib.min.css': ['public/degust/css/lib/*.css']
+        }
+      }
+    },
     less: {
       options: {
         compress: true
@@ -218,8 +256,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-concurrent');
   grunt.loadNpmTasks('grunt-nodemon');
   grunt.loadNpmTasks('grunt-newer');
+  grunt.loadNpmTasks('grunt-coffeeify');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
 
-  grunt.registerTask('default', ['copy:vendor', 'newer:uglify', 'newer:less', 'concurrent']);
-  grunt.registerTask('build', ['copy:vendor', 'uglify', 'less']);
+
+  grunt.registerTask('default', ['copy:vendor', 'newer:uglify', 'newer:less', 'newer:coffeeify', 'cssmin','concurrent']);
+  grunt.registerTask('build', ['copy:vendor', 'coffeeify', 'uglify', 'less', 'cssmin']);
   grunt.registerTask('lint', ['jshint']);
 };
