@@ -3,6 +3,8 @@
 var fs = require('fs');
 var child_process = require('child_process');
 var mustache = require('mustache');
+var tmp = require('tmp');
+
 
 var get_settings = function(deSettings) {
 	var s = deSettings.settings || {};
@@ -128,20 +130,23 @@ var count_columns = function(settings) {
 var design_matrix = function(settings) {
 	var mat = [];
 	var count_cols = count_columns(settings);
+	var col_names = [];
 	for (var i=0; i<settings.replicates.length; i+=1) {
 		var col = [];
 		for (var j=0; j<count_cols.length; j+=1) {
 			col[j] = settings.replicates[i][1].indexOf(count_cols[j])>=0 ? 1 : 0;
 		}
 		mat.push(col);
+		col_names.push(settings.replicates[i][0]);
 	}
-	return mat;
+	return {mat:mat, col_names:col_names};
 };
 
 // Create contrast matrix.  Columns are in order of passed "conditions" array.   
 // Rows in order of columns from design_matrix()
 var cont_matrix = function(settings, conds) {
 	var mat = [];
+	var col_names = [];
 	var pri = conds.shift();
 	for (var i=0; i<conds.length; i+=1) {
 		var col = [];
@@ -149,8 +154,9 @@ var cont_matrix = function(settings, conds) {
 			col[j] = (settings.replicates[j][0]===pri ? -1 : (settings.replicates[j][0]===conds[i] ? 1 : 0));
 		}
 		mat.push(col);
+		col_names.push(conds[i]);
 	}
-	return mat;
+	return {mat:mat, col_names:col_names};
 };
 
 // Columns to send to client
@@ -166,6 +172,12 @@ var arrToR = function(arr, quot) {
 	return "c(" + arr.map(function(x){ if (quot) {return "'"+x+"'";} else {return x;}}).join(",") + ")";
 };
 
+var matToR = function(arr, quot) {
+	return "matrix("+arrToR(arr.mat.map(function(x) { return arrToR(x,quot);}))+
+		   ", ncol="+arr.mat.length+
+		   ", dimnames=list(c(),"+arrToR(arr.col_names,true)+"))";
+};
+
 exports.dge = function(req, res, next){
 	req.app.db.models.DESettings.findById(req.params.id).populate('file').exec(function (err, deSettings) {
       	if (err) {
@@ -176,6 +188,8 @@ exports.dge = function(req, res, next){
       	}
       	var fields = JSON.parse(req.query.fields);
 
+ 
+		var tmpobj = tmp.fileSync();
       	var settings = get_settings(deSettings);
   		var params = {
   				sep_char: settings.csv_format ? "," : "\t",
@@ -183,11 +197,11 @@ exports.dge = function(req, res, next){
   				counts_skip: 0,
   				columns: arrToR(count_columns(settings), true),
   				min_counts: settings.min_counts,
-  				design: design_matrix(settings),
-  				cont_matrix: cont_matrix(settings, fields),
+  				design: matToR(design_matrix(settings)),
+  				cont_matrix: matToR(cont_matrix(settings, fields)),
 				export_cols: arrToR(export_cols(settings), true),
 				method: req.query.method,
-				file: null,
+				output_file: tmpobj.name,
 		};
 		var method;
 		switch (req.query.method) {
@@ -196,9 +210,17 @@ exports.dge = function(req, res, next){
 			case 'voom': method = 'voom-weights'; break;
 		}
 		var input = mustache.render(templates[method], params, templates);
-		var output = child_process.execFileSync("R", ['-q','--vanilla'], {input: input});
+		//console.log("input", input);
+		var prog = child_process.execFile("R", ['-q','--vanilla'], {}, function(err,_stdout,stderr) {
+			//console.log("stdout", stdout.toString());
+			console.log("tmpout", tmpobj.name);
 
-		res.json(output.toString());
+			var output = fs.readFileSync(tmpobj.name, 'utf8');
+
+			tmpobj.removeCallback();
+			res.send(output.toString());
+		});
+		prog.stdin.end(input);
 	});
 };
 

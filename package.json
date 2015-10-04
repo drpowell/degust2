@@ -40,6 +40,7 @@
     "passport-tumblr": "^0.1.x",
     "passport-twitter": "^1.x.x",
     "serve-static": "^1.9.x",
+    "tmp": "0.0.28",
     "underscore": "^1.x.x"
   },
   "devDependencies": {
