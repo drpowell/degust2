@@ -5,6 +5,19 @@ var child_process = require('child_process');
 var mustache = require('mustache');
 var tmp = require('tmp');
 
+var send_file = function(filePath, res) {
+    var stat = fs.statSync(filePath);
+
+    res.writeHead(200, {
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': stat.size
+    });
+
+    var readStream = fs.createReadStream(filePath);
+    // We replaced all the event handlers with a simple call to readStream.pipe()
+    readStream.pipe(res);
+
+};
 
 var get_settings = function(deSettings) {
 	var s = deSettings.settings || {};
@@ -92,13 +105,7 @@ exports.csv = function(req, res, next){
       		return next();
       	}
 
-	    res.writeHead(200, {
-	        'Content-Length': settings.file.size
-	    });
-
-	    var readStream = fs.createReadStream(settings.file.path);
-	    // We replaced all the event handlers with a simple call to readStream.pipe()
-	    readStream.pipe(res);
+      	send_file(settings.file.path, res);
 	});
 };
 
@@ -222,6 +229,13 @@ exports.dge = function(req, res, next){
 			return next();
 		}
 
+		var cacheKey = JSON.stringify([deSettings, req.query]);
+		var cacheFile = req.app.utility.caching.check(cacheKey);
+		if (cacheFile) {
+	      	send_file(cacheFile, res);
+	      	return;
+		}
+
 		var prog = child_process.execFile("R", ['-q','--vanilla'], {}, function(err,_stdout,stderr) {
 			//console.log("stdout", stdout.toString());
 			//console.log("stderr", stderr.toString());
@@ -229,7 +243,11 @@ exports.dge = function(req, res, next){
 			var output = fs.readFileSync(tmpobj.name +"/output.txt", 'utf8');
 
 			tmpobj.removeCallback();
-			res.send(output.toString());
+
+			var outStr = output.toString();
+			req.app.utility.caching.store(cacheKey, outStr);
+
+			res.send(outStr);
 		});
 		prog.stdin.end(input);
 	});

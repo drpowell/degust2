@@ -27,6 +27,7 @@
     "hbsfy": "^2.3.1",
     "helmet": "^0.9.x",
     "jade": "^1.x.x",
+    "md5": "^2.0.0",
     "method-override": "^2.x.x",
     "mongoose": "^4.x.x",
     "morgan": "^1.x.x",

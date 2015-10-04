@@ -89,6 +89,7 @@ app.utility = {};
 app.utility.sendmail = require('./util/sendmail');
 app.utility.slugify = require('./util/slugify');
 app.utility.workflow = require('./util/workflow');
+app.utility.caching = require('./util/caching');
 
 //listen up
 app.server.listen(app.config.port, function(){
