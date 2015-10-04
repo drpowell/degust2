@@ -676,6 +676,11 @@ process_kegg_data = (ec_data) ->
     for row in g_data.get_data()
         have_ec[row[ec_col]]=1
 
+    ec_data.sort((a,b) -> 
+        a=a.title.toLowerCase()
+        b=b.title.toLowerCase()
+        if a==b then 0 else if a<b then -1 else 1
+    )
     ec_data.forEach (row) ->
         num=0
         for ec in row.ec.split(" ").filter((s) -> s.length>0)
