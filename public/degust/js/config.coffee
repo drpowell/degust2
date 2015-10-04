@@ -1,4 +1,4 @@
-script = (params) -> "r-json.cgi?code=#{window.my_code}" + if params then "&#{params}" else ""
+script = (typ) -> "#{window.my_code}/#{typ}"
 view_url = () -> "compare.html?code=#{window.my_code}"
 
 # mod_settings will contain a copy of the current settings
@@ -62,7 +62,7 @@ save = (ev) ->
     #console.log mod_settings
     $.ajax({
         type: "POST",
-        url: script("query=save"),
+        url: script("settings"),
         data: {settings: JSON.stringify(mod_settings)},
         dataType: 'json'
     }).done((x) ->
@@ -244,7 +244,7 @@ update_analyze_server_side = () ->
 
 init_page = () ->
     reset_settings()
-    d3.text(script("query=partial_csv"), "text/csv", (err,dat) ->
+    d3.text(script("partial_csv"), "text/csv", (err,dat) ->
         if err
             $('div.container').text("ERROR : #{err}")
             return
@@ -337,7 +337,7 @@ init = () ->
         window.my_code = code
         $.ajax({
             type: "GET",
-            url: script("query=settings"),
+            url: script("settings"),
             dataType: 'json'
         }).done((json) ->
             window.settings = json

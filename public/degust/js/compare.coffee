@@ -50,8 +50,8 @@ class BackendCommon
     @config_url: () ->
         "config.html?code=#{window.my_code}"
 
-    @script: (params) ->
-        "r-json.cgi?code=#{window.my_code}" + if params then "&#{params}" else ""
+    @script: (typ,params) ->
+        "#{window.my_code}/#{typ}" + if params then "?#{params}" else ""
 
     constructor: (@settings, configured) ->
         # Ensure we have been configured!
@@ -65,7 +65,7 @@ class BackendCommon
             $('a.config').attr('href', BackendCommon.config_url())
 
     request_kegg_data: (callback) ->
-        d3.tsv(BackendCommon.script('query=kegg_titles'), (err,ec_data) ->
+        d3.tsv(BackendCommon.script('kegg_titles'), (err,ec_data) ->
             log_info("Downloaded kegg : rows=#{ec_data.length}")
             log_debug("Downloaded kegg : rows=#{ec_data.length}",ec_data,err)
             callback(ec_data)
@@ -82,7 +82,7 @@ class WithBackendNoAnalysis
         @backend.request_kegg_data(callback)
 
     request_init_data: () ->
-        req = BackendCommon.script("query=csv")
+        req = BackendCommon.script("csv")
         start_loading()
         d3.text(req, (err, dat) =>
             log_info("Downloaded DGE CSV: len=#{dat.length}")
@@ -134,7 +134,7 @@ class WithBackendAnalysis
 
         # load csv file and create the chart
         method = @_get_dge_method()
-        req = BackendCommon.script("query=dge&method=#{method}&fields=#{encodeURIComponent(JSON.stringify columns)}")
+        req = BackendCommon.script("dge","method=#{method}&fields=#{encodeURIComponent(JSON.stringify columns)}")
         start_loading()
         d3.csv(req, (err, data) =>
             log_info("Downloaded DGE counts : rows=#{data.length}")
@@ -169,7 +169,7 @@ class WithBackendAnalysis
     request_r_code: (callback) ->
         columns = @current_selection
         method = @_get_dge_method()
-        req = BackendCommon.script("query=dge_r_code&method=#{method}&fields=#{encodeURIComponent(JSON.stringify columns)}")
+        req = BackendCommon.script("dge_r_code","method=#{method}&fields=#{encodeURIComponent(JSON.stringify columns)}")
         d3.text(req, (err,data) ->
             log_debug("Downloaded R Code : len=#{data.length}",data,err)
             callback(data)
@@ -840,7 +840,7 @@ init = () ->
         window.my_code = code
         $.ajax({
             type: "GET",
-            url: BackendCommon.script("query=settings"),
+            url: BackendCommon.script("settings"),
             dataType: 'json'
         }).done((json) ->
             window.settings = json
