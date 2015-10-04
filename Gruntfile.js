@@ -101,7 +101,7 @@ module.exports = function(grunt) {
       basic: {
         options: {
           transforms: ['coffeeify','hbsfy'],
-          //debug: true
+          debug: true
         },
         files: [
           {

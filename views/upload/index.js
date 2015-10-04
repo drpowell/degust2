@@ -17,10 +17,19 @@ exports.upload = function(req, res){
                  mimetype: req.file.mimetype,
                  size: req.file.size,
                  createdAt: new Date().toISOString(),
-                 owner: owner
+                 owner: owner,
+                 settings: {}
                };
 
-  req.app.db.models.File.create(fields, function(err, f) {
-    res.send("done!");
+  req.app.db.models.File.create(fields, function(err, file) {
+    var fields = { name: null,
+                   createdAt: new Date().toISOString(),
+                   owner: owner,
+                   file: file,
+
+                 };
+    req.app.db.models.DESettings.create(fields, function(err, settings) {
+      res.redirect('/degust/compare.html?code='+settings._id);
+    });
   });
 };

@@ -38,6 +38,11 @@ exports = module.exports = function(app, passport) {
   app.get('/upload/', require('./views/upload/index').init);
   app.post('/upload/', upload.single('filename'), require('./views/upload/index').upload);
 
+  app.get('/degust/:id/settings', require('./views/degust/index').settings);
+  app.post('/degust/:id/settings', require('./views/degust/index').saveSettings);
+  app.get('/degust/:id/partial_csv', require('./views/degust/index').partialCSV);
+  app.get('/degust/:id/dge', require('./views/degust/index').dge);
+
   //sign up
   app.get('/signup/', require('./views/signup/index').init);
   app.post('/signup/', require('./views/signup/index').signup);
