@@ -786,7 +786,7 @@ render_page = (template) ->
     # Show the main html
     opts =
         asset_base: settings.asset_base || ''
-        home_link: settings.home_link || 'index.html'
+        home_link: settings.home_link || '/'
 
     body = $(template(opts))
     $('#replace-me').replaceWith(body)

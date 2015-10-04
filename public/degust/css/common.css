@@ -4,7 +4,7 @@
 
 div#beta { position: relative; height: 0}
 #beta img { position: relative; width: 150px; top: -55px; left: -90px;}
-.supported-by { font-size: 10px; }
+.supported-by a { display: block; }
 
 div#forkme { position: relative; height: 0 }
 #forkme img { position: absolute; top: -48px; right: -60px; border 0; }
