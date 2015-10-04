@@ -41,6 +41,7 @@ exports = module.exports = function(app, passport) {
   app.get('/degust/:id/settings', require('./views/degust/index').settings);
   app.post('/degust/:id/settings', require('./views/degust/index').saveSettings);
   app.get('/degust/:id/partial_csv', require('./views/degust/index').partialCSV);
+  app.get('/degust/:id/csv', require('./views/degust/index').csv);
   app.get('/degust/:id/dge', require('./views/degust/index').dge);
   app.get('/degust/:id/dge_r_code', require('./views/degust/index').dge_r_code);
 
