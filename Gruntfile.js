@@ -68,7 +68,7 @@ module.exports = function(grunt) {
     watch: {
       clientCoffee: {
         files: ['public/degust/**/*.coffee'],
-        tasks: ['newer:coffeeify']
+        tasks: ['remove','coffeeify']
       },
       clientJS: {
          files: [
@@ -96,6 +96,10 @@ module.exports = function(grunt) {
         ],
         tasks: ['less:layouts']
       }
+    },
+    // Ugly hack to force all coffee regen on change.  Not sure how to do dynamic dependencies in grunt
+    remove: {
+      fileList: ['public/degust/*.min.js']
     },
     coffeeify: {
       basic: {
@@ -258,6 +262,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-newer');
   grunt.loadNpmTasks('grunt-coffeeify');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
+  grunt.loadNpmTasks('grunt-remove');
 
 
   grunt.registerTask('default', ['copy:vendor', 'newer:uglify', 'newer:less', 'newer:coffeeify', 'cssmin','concurrent']);
