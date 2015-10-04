@@ -17,3 +17,10 @@ out2 <- cbind(fit2$coef,
 
 write.csv(out2, file="{{{output_dir}}}/output.txt", row.names=FALSE,na='')
 
+
+cat(
+   toJSON(list(sample.weights=y$sample.weights, samples=colnames(counts),
+               rank=fit2$rank, df.prior=fit2$df.prior,
+               cov.coefficients=data.frame(fit2$cov.coefficients))),
+   file="{{{output_dir}}}/extra.json"
+)

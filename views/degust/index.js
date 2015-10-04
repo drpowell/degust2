@@ -276,10 +276,18 @@ exports.dge = function(req, res, next){
                 return next();
             }
             var output = fs.readFileSync(tmpobj.name +"/output.txt", 'utf8');
+            var extra="";
+            try {
+                extra = JSON.parse(fs.readFileSync(tmpobj.name +"/extra.json", 'utf8'));
+            } catch (err) {}
 
             tmpobj.removeCallback();
 
-            var outStr = output.toString();
+            var outStr = JSON.stringify({
+                    csv: output,
+                    extra: extra,
+            });
+
             req.app.utility.caching.store(cacheKey, outStr);
 
             res.send(outStr);

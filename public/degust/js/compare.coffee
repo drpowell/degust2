@@ -136,9 +136,11 @@ class WithBackendAnalysis
         method = @_get_dge_method()
         req = BackendCommon.script("dge","method=#{method}&fields=#{encodeURIComponent(JSON.stringify columns)}")
         start_loading()
-        d3.csv(req, (err, data) =>
+        d3.json(req, (err, json) =>
+            data = d3.csv.parse(json.csv);
             log_info("Downloaded DGE counts : rows=#{data.length}")
             log_debug("Downloaded DGE counts : rows=#{data.length}",data,err)
+            log_info("Extra info : ",json.extra)
             done_loading()
             if err
                 log_error(err)
