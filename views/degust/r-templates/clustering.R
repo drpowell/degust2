@@ -7,9 +7,9 @@ fit <- lmFit(y,design)
 
 # Cluster ordering...
 library(seriation)
-d <- dist(fit$coefficients[,c({{columns}})])
+d <- dist(fit$coefficients[,c({{{columns}}})])
 c <- list(hclust = hclust(d))
 s <- seriate(d, method='OLO', control=c)
 order <- get_order(s[[1]])
-write.csv(list(id=order), file="{{file}}", row.names=FALSE)
+write.csv(list(id=order), file="{{{output_file}}}", row.names=FALSE)
 

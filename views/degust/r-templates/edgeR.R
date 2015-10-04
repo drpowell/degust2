@@ -1,6 +1,6 @@
 {{> common}}
 
-cont.matrix <- {{cont_matrix}}
+cont.matrix <- {{{cont_matrix}}}
 
 y <- DGEList(counts=counts)
 
@@ -22,8 +22,8 @@ colnames(lfc) <- colnames(cont.matrix)
 out2 <- cbind(lfc,
               'adj.P.Val' = out[,'FDR'],
               'AveExpr'   = out[,'logCPM'],
-              x[, c({{export_cols}})] )
+              x[, c({{{export_cols}}})] )
 
-write.csv(out2, file="{{file}}", row.names=FALSE,na='')
+write.csv(out2, file="{{{output_file}}}", row.names=FALSE,na='')
 
 
