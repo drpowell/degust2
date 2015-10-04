@@ -79,7 +79,17 @@ exports.settings = function(req, res, next){
             return next();
         }
 
-        res.json(get_settings(settings));
+        // Store this visit
+        if (req.user) {
+            req.app.db.models.Visited.update(
+                        {user:req.user._id, deSettings:settings._id}, 
+                        {user:req.user._id, deSettings:settings._id, last: Date.now()},
+                        {upsert:true}, function(err, dat) {
+                res.json(get_settings(settings));                      
+            });
+        } else {
+            res.json(get_settings(settings));           
+        }
     });
 
 };
