@@ -24,6 +24,6 @@ out2 <- cbind(lfc,
               'AveExpr'   = out[,'logCPM'],
               x[, c({{{export_cols}}})] )
 
-write.csv(out2, file="{{{output_file}}}", row.names=FALSE,na='')
+write.csv(out2, file="{{{output_dir}}}/output.txt", row.names=FALSE,na='')
 
 

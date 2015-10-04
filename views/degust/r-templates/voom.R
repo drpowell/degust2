@@ -15,5 +15,5 @@ out2 <- cbind(fit2$coef,
               out[, c('adj.P.Val','AveExpr')],
               x[, c({{{export_cols}}})] )
 
-write.csv(out2, file="{{{output_file}}}", row.names=FALSE,na='')
+write.csv(out2, file="{{{output_dir}}}/output.txt", row.names=FALSE,na='')
 

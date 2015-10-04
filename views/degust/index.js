@@ -178,7 +178,7 @@ var matToR = function(arr, quot) {
 		   ", dimnames=list(c(),"+arrToR(arr.col_names,true)+"))";
 };
 
-var get_r_code = function(req, deSettings, output_file) {
+var get_r_code = function(req, deSettings, output_dir) {
   	var fields = JSON.parse(req.query.fields);
   	var settings = get_settings(deSettings);
 	var params = {
@@ -190,13 +190,16 @@ var get_r_code = function(req, deSettings, output_file) {
   				design: matToR(design_matrix(settings)),
   				cont_matrix: matToR(cont_matrix(settings, fields)),
 				export_cols: arrToR(export_cols(settings), true),
-				output_file: output_file,
+				output_dir: output_dir,
 	};
 	var method;
 	switch (req.query.method) {
 		case 'voom': method = 'voom'; break;
 		case 'edgeR': method = 'edgeR'; break;
-		case 'voom': method = 'voom-weights'; break;
+		case 'voom-weights': method = 'voom-weights'; break;
+	}
+	if (!method) {
+		return null;
 	}
 	var input = mustache.render(templates[method], params, templates);
 	//console.log("input", input);
@@ -212,13 +215,18 @@ exports.dge = function(req, res, next){
       		return next();
       	}
 
-		var tmpobj = tmp.fileSync();
+		var tmpobj = tmp.dirSync({unsafeCleanup: true});
 		var input = get_r_code(req, deSettings, tmpobj.name);
+
+		if (!input) {
+			return next();
+		}
+
 		var prog = child_process.execFile("R", ['-q','--vanilla'], {}, function(err,_stdout,stderr) {
 			//console.log("stdout", stdout.toString());
 			//console.log("stderr", stderr.toString());
 
-			var output = fs.readFileSync(tmpobj.name, 'utf8');
+			var output = fs.readFileSync(tmpobj.name +"/output.txt", 'utf8');
 
 			tmpobj.removeCallback();
 			res.send(output.toString());
@@ -236,7 +244,11 @@ exports.dge_r_code = function(req, res, next){
       		return next();
       	}
 
-		var input = get_r_code(req, deSettings, "output.txt");
+		var input = get_r_code(req, deSettings, "output_dir");
+		if (!input) {
+			return next();
+		}
+
 		var prog = child_process.execFile("R", ['-q','--vanilla'], {}, function(err,stdout,stderr) {
 			res.send(input + stdout.toString());
 		});
