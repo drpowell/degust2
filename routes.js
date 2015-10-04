@@ -42,6 +42,7 @@ exports = module.exports = function(app, passport) {
   app.post('/degust/:id/settings', require('./views/degust/index').saveSettings);
   app.get('/degust/:id/partial_csv', require('./views/degust/index').partialCSV);
   app.get('/degust/:id/dge', require('./views/degust/index').dge);
+  app.get('/degust/:id/dge_r_code', require('./views/degust/index').dge_r_code);
 
   //sign up
   app.get('/signup/', require('./views/signup/index').init);

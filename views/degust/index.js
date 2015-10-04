@@ -178,20 +178,10 @@ var matToR = function(arr, quot) {
 		   ", dimnames=list(c(),"+arrToR(arr.col_names,true)+"))";
 };
 
-exports.dge = function(req, res, next){
-	req.app.db.models.DESettings.findById(req.params.id).populate('file').exec(function (err, deSettings) {
-      	if (err) {
-        	return next(err);
-      	}
-      	if (settings===null) {
-      		return next();
-      	}
-      	var fields = JSON.parse(req.query.fields);
-
- 
-		var tmpobj = tmp.fileSync();
-      	var settings = get_settings(deSettings);
-  		var params = {
+var get_r_code = function(req, deSettings, output_file) {
+  	var fields = JSON.parse(req.query.fields);
+  	var settings = get_settings(deSettings);
+	var params = {
   				sep_char: settings.csv_format ? "," : "\t",
   				counts_file: deSettings.file.path,
   				counts_skip: 0,
@@ -200,20 +190,33 @@ exports.dge = function(req, res, next){
   				design: matToR(design_matrix(settings)),
   				cont_matrix: matToR(cont_matrix(settings, fields)),
 				export_cols: arrToR(export_cols(settings), true),
-				method: req.query.method,
-				output_file: tmpobj.name,
-		};
-		var method;
-		switch (req.query.method) {
-			case 'voom': method = 'voom'; break;
-			case 'edgeR': method = 'edgeR'; break;
-			case 'voom': method = 'voom-weights'; break;
-		}
-		var input = mustache.render(templates[method], params, templates);
-		//console.log("input", input);
+				output_file: output_file,
+	};
+	var method;
+	switch (req.query.method) {
+		case 'voom': method = 'voom'; break;
+		case 'edgeR': method = 'edgeR'; break;
+		case 'voom': method = 'voom-weights'; break;
+	}
+	var input = mustache.render(templates[method], params, templates);
+	//console.log("input", input);
+	return input;
+};
+
+exports.dge = function(req, res, next){
+	req.app.db.models.DESettings.findById(req.params.id).populate('file').exec(function (err, deSettings) {
+      	if (err) {
+        	return next(err);
+      	}
+      	if (deSettings===null) {
+      		return next();
+      	}
+
+		var tmpobj = tmp.fileSync();
+		var input = get_r_code(req, deSettings, tmpobj.name);
 		var prog = child_process.execFile("R", ['-q','--vanilla'], {}, function(err,_stdout,stderr) {
 			//console.log("stdout", stdout.toString());
-			console.log("tmpout", tmpobj.name);
+			//console.log("stderr", stderr.toString());
 
 			var output = fs.readFileSync(tmpobj.name, 'utf8');
 
@@ -221,6 +224,23 @@ exports.dge = function(req, res, next){
 			res.send(output.toString());
 		});
 		prog.stdin.end(input);
+	});
+};
+
+exports.dge_r_code = function(req, res, next){
+	req.app.db.models.DESettings.findById(req.params.id).populate('file').exec(function (err, deSettings) {
+      	if (err) {
+        	return next(err);
+      	}
+      	if (deSettings===null) {
+      		return next();
+      	}
+
+		var input = get_r_code(req, deSettings, "output.txt");
+		var prog = child_process.execFile("R", ['-q','--vanilla'], {}, function(err,stdout,stderr) {
+			res.send(input + stdout.toString());
+		});
+		prog.stdin.end(mustache.render(templates.versions, {}, templates));
 	});
 };
 
