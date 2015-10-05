@@ -12,15 +12,16 @@ fit2 <- eBayes(fit2)
 out <- topTable(fit2, n=Inf, sort.by='none')
 
 out2 <- cbind(fit2$coef,
-              out[, c('adj.P.Val','AveExpr')],
-              x[, c({{{export_cols}}})] )
+			  out[, c('adj.P.Val','AveExpr')],
+			  x[, c({{{export_cols}}})] )
 
 write.csv(out2, file="{{{output_dir}}}/output.txt", row.names=FALSE,na='')
 
 
 cat(
    toJSON(list(sample.weights=y$sample.weights, samples=colnames(counts),
-               rank=fit2$rank, df.prior=fit2$df.prior,
-               cov.coefficients=data.frame(fit2$cov.coefficients))),
+			   rank=fit2$rank, df.prior=fit2$df.prior,
+			   design=data.frame(fit2$design), contrasts=data.frame(fit2$contrasts),
+			   cov.coefficients=data.frame(fit2$cov.coefficients))),
    file="{{{output_dir}}}/extra.json"
 )

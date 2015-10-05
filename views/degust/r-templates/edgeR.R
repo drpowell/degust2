@@ -20,13 +20,15 @@ colnames(lfc) <- colnames(cont.matrix)
 
 # Output with column names for degust
 out2 <- cbind(lfc,
-              'adj.P.Val' = out[,'FDR'],
-              'AveExpr'   = out[,'logCPM'],
-              x[, c({{{export_cols}}})] )
+			  'adj.P.Val' = out[,'FDR'],
+			  'AveExpr'   = out[,'logCPM'],
+			  x[, c({{{export_cols}}})] )
 
 write.csv(out2, file="{{{output_dir}}}/output.txt", row.names=FALSE,na='')
 
 cat(
-   toJSON(list(prior.df=lrt$prior.df)),
+   toJSON(list(prior.df=lrt$prior.df,
+			   design=data.frame(lrt$design)
+		 )),
    file="{{{output_dir}}}/extra.json"
 )

@@ -193,7 +193,7 @@ var design_matrix = function(settings) {
         mat.push(col);
         col_names.push(settings.replicates[i][0]);
     }
-    return {mat:mat, col_names:col_names};
+    return {mat:mat, col_names:col_names, row_names: count_cols};
 };
 
 // Create contrast matrix.  Columns are in order of passed "conditions" array.   
@@ -210,7 +210,8 @@ var cont_matrix = function(settings, conds) {
         mat.push(col);
         col_names.push(conds[i]);
     }
-    return {mat:mat, col_names:col_names};
+    var replicate_names = settings.replicates.map(function(r){return r[0];});
+    return {mat:mat, col_names:col_names, row_names: replicate_names};
 };
 
 // Columns to send to client
@@ -232,7 +233,7 @@ var arrToR = function(arr, quot) {
 var matToR = function(arr, quot) {
     return "matrix("+arrToR(arr.mat.map(function(x) { return arrToR(x,quot);}))+
            ", ncol="+arr.mat.length+
-           ", dimnames=list(c(),"+arrToR(arr.col_names,true)+"))";
+           ", dimnames=list("+arrToR(arr.row_names,true)+","+arrToR(arr.col_names,true)+"))";
 };
 
 var get_r_code = function(req, deSettings, output_dir) {
