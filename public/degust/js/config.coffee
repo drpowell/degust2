@@ -133,7 +133,6 @@ update_data = () ->
 
 
     set_multi_select($('select.info-columns'), opts, mod_settings.info_columns)
-    set_multi_select($('select#hide-columns'), opts, mod_settings.hide_columns)
     set_multi_select($('select.fc-columns'), opts, mod_settings.fc_columns)
 
     update_table()
@@ -141,14 +140,16 @@ update_data = () ->
     $('.condition:not(.template)').remove()
     for r in mod_settings.replicates
         [n,lst] = r
-        create_condition_widget(n || 'Unknown', lst, n in (mod_settings['init_select'] || []))
+        create_condition_widget(n || 'Unknown', lst, 
+            n in (mod_settings['init_select'] || []),
+            n in (mod_settings['hidden_factor'] || [])
+            )
 
     $('#analyze-server-side').prop('checked', mod_settings.analyze_server_side)
     update_analyze_server_side()
 
 update_table = () ->
-    mod_settings.hide_columns ||= []
-    columns = column_keys.filter((key,i) -> i not in mod_settings.hide_columns ).map((key,i) ->
+    columns = column_keys.map((key,i) ->
         id: key
         name: key
         field: i
@@ -169,7 +170,7 @@ set_guess_type = () ->
     else
         $('#fmt-csv').attr('checked','checked')
 
-create_condition_widget = (name, selected, is_init) ->
+create_condition_widget = (name, selected, is_init, is_hidden) ->
     cond = $('.condition.template').clone(true)
     cond.removeClass('template')
 
@@ -186,6 +187,7 @@ create_condition_widget = (name, selected, is_init) ->
         selectedList: 4
     )
     $('.init-select input',cond).prop('checked', is_init)
+    $('.hidden-factor input',cond).prop('checked', is_hidden)
 
     $(".condition-group").append(cond)
 
@@ -226,15 +228,18 @@ del_condition_widget = (e) ->
 conditions_to_settings = () ->
     c = []
     init_select = []
+    hidden_factor = []
     $('.condition:not(.template)').each( (i,e) ->
         lst = []
         $('select.columns option:selected',e).each( (j,opt) -> lst.push( column_keys[+$(opt).val()]) )
         name = $('.col-name',e).val() || "Cond #{i+1}"
         c.push([name, lst])
         init_select.push(name) if $('.init-select input',e).is(':checked')
+        hidden_factor.push(name) if $('.hidden-factor input',e).is(':checked')
     )
     mod_settings.replicates = c
     mod_settings.init_select = init_select
+    mod_settings.hidden_factor = hidden_factor
 
 update_analyze_server_side = () ->
     server_side = $('#analyze-server-side').is(':checked')
@@ -286,21 +291,11 @@ init_page = () ->
         selectedList: 4
     )
 
-    $('select#hide-columns').change(() ->
-        hide=[]
-        $("select#hide-columns option:selected").each (i,e) -> hide.push(column_keys[+$(e).val()])
-        mod_settings.hide_columns = hide
-        update_table()
-    )
-    $("select#hide-columns").multiselect(
-        noneSelectedText: '-- None selected --'
-        selectedList: 4
-    )
-
     $('#add-condition').click(() ->
         w = create_condition_widget("", [])
         if $('.condition:not(.template)').length <= 2
             $('.init-select input',w).prop('checked',true)
+            $('.hidden-factor input',w).prop('checked',false)
     )
 
     $('.del-condition').click(del_condition_widget)

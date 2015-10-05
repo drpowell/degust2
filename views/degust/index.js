@@ -43,6 +43,9 @@ var check_settings = function(settings) {
     var invalid = /[\\'"\n]/;
 
     var check_array = function(arr) {
+        if (!arr) {
+            return true;
+        }
         for (var i=0;i<arr.length;i+=1) {
             if (invalid.test(arr[i])) {
                 return false;               
@@ -52,7 +55,8 @@ var check_settings = function(settings) {
     };
 
     if (!check_array(settings.fc_columns) ||
-        !check_array(settings.info_columns)) {
+        !check_array(settings.info_columns) ||
+        !check_array(settings.hidden_factors)) {
         return false;
     }
     if (settings.ec_column && invalid.test(settings.ec_column)) {

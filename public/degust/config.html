@@ -37,9 +37,8 @@
       <h1>Configuration</h1>
 
       <div class="row">
-        <div class="col-md-8 options">
+        <div class="col-md-12 options">
           <form class="form-horizontal">
-          <legend>Settings</legend>
 
           <div class="form-group">
             <label class="control-label col-sm-3" for="name">Name</label>
@@ -69,12 +68,6 @@
             <label class="control-label col-sm-3">EC Number column</label>
             <div class="controls col-sm-6">
               <select class="ec-column" title="Column containing EC numbers for each gene, used to display Kegg pathways" data-placement='right'></select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="control-label col-sm-3">Hide columns</label>
-            <div class="controls col-sm-6">
-              <select id="hide-columns" multiple="multiple" title="Columns to hide from the table below.  Only used to hide columns on this page and ease configuration" data-placement='right'></select>
             </div>
           </div>
           <div class="form-group">
@@ -119,10 +112,8 @@
                 </div>
                 <div class="controls col-sm-9">
                   <select class="columns" multiple="multiple"></select>
-                  <span class="init-select">
-                    <input type="checkbox" />
-                    <span>Pre-selected</span>
-                  </span>
+                  <label class='init-select'><input type="checkbox"  />Initial select</label>
+                  <label class='hidden-factor'><input type="checkbox" />Hidden Factor</label>
                   <button type="button" class="del-condition">&times;</button>
                 </div>
               </div>

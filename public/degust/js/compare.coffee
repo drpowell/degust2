@@ -221,17 +221,24 @@ class WithBackendAnalysis
 
     _init_condition_selector: () ->
         init_select = @settings['init_select'] || []
+        hidden_factor = @settings['hidden_factor'] || []
+        hidden_div = $("<div></div>")
         $.each(@settings.replicates, (i, rep) =>
             name = rep[0]
-            div = $("""<label>
-                        <input type='checkbox' title='Select this condition' data-placement='right'> #{name}
-                       </label>
-                    """)
-
-            $("#files").append(div)
-            $("input",div).data('rep',name)
+            if name in hidden_factor
+                hidden_div.append($("<label>#{name}</label>"))
+            else
+                div = $("""<label>
+                            <input type='checkbox' title='Select this condition' data-placement='right'> #{name}
+                           </label>
+                        """)
+                $("#files").append(div)
+                $("input",div).data('rep',name)
         )
         $("#files input").change((e) => @_select_sample(e))
+        if hidden_factor.length>0
+            $('#hidden-factors').append(hidden_div)
+            $('#hidden-factors').show()
 
         @_set_selected_cols(init_select)
         @_update_samples()
