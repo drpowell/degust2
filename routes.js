@@ -37,6 +37,7 @@ exports = module.exports = function(app, passport) {
   app.get('/about/', require('./views/about/index').init);
   app.get('/upload/', require('./views/upload/index').init);
   app.post('/upload/', upload.single('filename'), require('./views/upload/index').upload);
+  app.get('/visits/', require('./views/visits/index').init);
 
   app.get('/degust/:id/settings', require('./views/degust/index').settings);
   app.post('/degust/:id/settings', require('./views/degust/index').saveSettings);

@@ -348,7 +348,7 @@ exports.kegg_titles = function(req,res,next) {
         }
 
         var kegg = fs.readFileSync(__dirname + "/kegg/pathway/map_title.tab", 'utf8');
-        var lst = kegg.toString().split(/\r?\n/).map(function(l) { return l.split(/\t/)});
+        var lst = kegg.toString().split(/\r?\n/).map(function(l) { return l.split(/\t/); });
 
         var readOne = function(lst, buf) {
             var codeTitle = lst.shift();

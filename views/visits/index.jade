@@ -1,0 +1,36 @@
+extends ../../layouts/default
+
+block head
+  title Your Data
+
+block neck
+  link(rel='stylesheet', href='/views/about/index.min.css?#{cacheBreaker}')
+
+mixin visit(list)
+  table.table
+    tr
+      th Name
+      th Last visited
+      th Owner
+    each val in list
+      tr
+        td 
+          a(href="/degust/compare.html?code=#{val.deSettings._id}") #{val.deSettings.settings.name}
+        td #{moment(val.last).format("MMMM Do YYYY, h:mm:ss a")}
+        td #{val.deSettings.owner ? val.deSettings.owner.roles.account.name.full : ''}
+
+block body
+  div.row
+    div.col-sm-6
+      div.page-header
+        h1 Your Data
+  div.row
+    div.col-sm-6
+      div.mine
+        if mine.length
+          h4 My Data sets
+          +visit(mine)
+      div.visited
+        if others.length
+          h4 Data sets shared with me
+          +visit(others)
