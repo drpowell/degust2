@@ -83,7 +83,7 @@ calc_order = (e) ->
 class Heatmap
     constructor: (@opts) ->
         @opts.h_pad ?= 20
-        @opts.h ?= 50
+        @opts.h ?= 30
         @opts.width ?= 1000
         @opts.label_width ?= 120
         @opts.limit ?= @opts.width - @opts.label_width

@@ -226,7 +226,7 @@ class WithBackendAnalysis
         $.each(@settings.replicates, (i, rep) =>
             name = rep[0]
             if name in hidden_factor
-                hidden_div.append($("<label>#{name}</label>"))
+                hidden_div.append($("<div><label>#{name}</label></div>"))
             else
                 div = $("""<label>
                             <input type='checkbox' title='Select this condition' data-placement='right'> #{name}

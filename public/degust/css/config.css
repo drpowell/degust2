@@ -13,3 +13,5 @@
 .del-condition { float: right; }
 
 .init-select, .hidden-factor {margin-left: 15px; font-size: smaller;}
+
+.col-name {width: 100%;}
