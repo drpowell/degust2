@@ -27,7 +27,6 @@ var get_settings = function(deSettings) {
                fc_columns: [],
                info_columns: [],
                analyze_server_side: true,
-               min_counts: 0,
     };
 
     Object.keys(def).forEach(function(key) {
@@ -240,6 +239,14 @@ var matToR = function(arr, quot) {
            ", dimnames=list("+arrToR(arr.row_names,true)+","+arrToR(arr.col_names,true)+"))";
 };
 
+var force_num = function(str) {
+    var n = +str;
+    if (isNaN(n)) {
+        n=0;
+    }
+    return n;
+};
+
 var get_r_code = function(req, deSettings, output_dir) {
     var fields = JSON.parse(req.query.fields);
     var settings = get_settings(deSettings);
@@ -248,7 +255,9 @@ var get_r_code = function(req, deSettings, output_dir) {
                 counts_file: deSettings.file.path,
                 counts_skip: 0,
                 columns: arrToR(count_columns(settings), true),
-                min_counts: settings.min_counts,
+                min_counts: force_num(settings.min_counts),
+                min_cpm: force_num(settings.min_cpm),
+                min_cpm_samples: force_num(settings.min_cpm_samples),
                 design: matToR(design_matrix(settings)),
                 cont_matrix: matToR(cont_matrix(settings, fields)),
                 export_cols: arrToR(export_cols(settings), true),

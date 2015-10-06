@@ -92,11 +92,22 @@
 
           <div class="server-side-analysis-fields">
             <div class="form-group">
-              <label class="control-label col-sm-3" for="name">Min read count</label>
+              <label class="control-label col-sm-3" for="name">Min gene read count</label>
               <div class="controls col-sm-6">
                 <input class="min-counts" type="text" name="min-counts" placeholder="0" title="Optional: Minimum read count required in at least one replicate or the gene is ignored" data-placement='right' />
               </div>
+            </div>        
+            <div class="form-group">
+              <label class="control-label col-sm-3" for="name">Min gene CPM</label>
+              <div class="controls col-sm-2">
+                <input class="min-cpm" type="text" name="min-cpm" placeholder="0" title="Optional: A gene must have at a CPM of at least this, in at least the number of specified samples" data-placement='right' />
+              </div>
+              <label class="control-label col-sm-2" for="name">in at least samples</label>
+              <div class="controls col-sm-3">
+                <input class="min-cpm-samples" type="text" name="min-cpm" placeholder="0" title="Optional: A gene must have at a CPM of at least this, in at least the number of specified samples" data-placement='right' />
+              </div>
             </div>
+
 
             <div class="condition-group conditions">
               <div class="form-group">

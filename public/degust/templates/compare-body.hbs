@@ -105,7 +105,23 @@
           <select id='kegg'></select>
         </div>
 
-        <div class='right'>
+        <div class='text-right'>
+          <a class="genesets-toggle" role="button" data-toggle="collapse" href="#genesets" aria-expanded="false" aria-controls="genesets">
+              Gene Sets
+          </a>
+        </div>
+        <div class="collapse" id="genesets">
+          <div class='filter'>
+            <h4>Gene Sets</h4>
+            <a class='btn btn-primary btn-xs geneset-save'>Save Current as Gene Set</a>
+            <div class="geneset-search">
+              <label>Search</label>
+              <input type="text" class='search' />
+            </div>
+          </div>
+        </div>
+
+        <div class='text-right'>
           <a class='show-r-code' href='#'>Show R code</a>
         </div>
       </div>

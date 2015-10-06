@@ -40,6 +40,12 @@ warnings = () ->
 valid_int = (str) ->
     str!='' && parseInt(str).toString() == str
 
+optional_number = (obj, fld, str) ->
+    if valid_int(str)
+        obj[fld] =  parseInt(str)
+    else
+        delete obj[fld]
+
 save = (ev) ->
     ev.preventDefault()
     mod_settings.name = $("input.name").val()
@@ -50,10 +56,9 @@ save = (ev) ->
     conditions_to_settings()
     mod_settings.csv_format = csv_or_tab()=='CSV'
 
-    if valid_int($("input.min-counts").val())
-        mod_settings.min_counts =  parseInt($("input.min-counts").val())
-    else
-        delete mod_settings.min_counts
+    optional_number(mod_settings, "min_counts", $("input.min-counts").val())
+    optional_number(mod_settings, "min_cpm", $("input.min-cpm").val())
+    optional_number(mod_settings, "min_cpm_samples", $("input.min-cpm-samples").val())
 
     $('#saving-modal').modal({'backdrop': 'static', 'keyboard' : false})
     $('#saving-modal .modal-body').html("Saving...")
@@ -99,6 +104,10 @@ update_data = () ->
     $("input.link-url").val(mod_settings.link_url || "")
     if mod_settings.hasOwnProperty('min_counts')
         $("input.min-counts").val(mod_settings.min_counts)
+    if mod_settings.hasOwnProperty('min_cpm')
+        $("input.min-cpm").val(mod_settings.min_cpm)
+    if mod_settings.hasOwnProperty('min_cpm_samples')
+        $("input.min-cpm-samples").val(mod_settings.min_cpm_samples)
 
     asRows = null
     switch csv_or_tab()
@@ -174,7 +183,11 @@ create_condition_widget = (name, selected, is_init, is_hidden) ->
     cond = $('.condition.template').clone(true)
     cond.removeClass('template')
 
-    $("input.col-name",cond).val(name) if name
+    if name
+        $("input.col-name",cond).val(name)
+        $("input.col-name",cond).data('edited', true)
+    else
+        $("input.col-name",cond).data('edited', false)
 
     opts = ""
     $.each(column_keys, (i, col) ->
@@ -204,7 +217,7 @@ create_condition_widget = (name, selected, is_init, is_hidden) ->
     )
 
     # Track editing of the name.  Blanking the name out makes it "un-edited"
-    $("input.col-name",cond).data('edited', false)
+
     $("input.col-name",cond).change(() ->
         inp = $("input.col-name",cond)
         inp.data('edited', inp.val()!="")
