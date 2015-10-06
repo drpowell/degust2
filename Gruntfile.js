@@ -67,7 +67,7 @@ module.exports = function(grunt) {
     },
     watch: {
       clientCoffee: {
-        files: ['public/degust/**/*.coffee'],
+        files: ['public/degust/**/*.coffee','public/degust/**/*.hbs'],
         tasks: ['remove','coffeeify']
       },
       clientJS: {
