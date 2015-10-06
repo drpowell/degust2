@@ -9,6 +9,8 @@ exports = module.exports = function(app, mongoose) {
   require('./schema/File')(app, mongoose);
   require('./schema/DESettings')(app, mongoose);
   require('./schema/Visited')(app, mongoose);
+  require('./schema/GeneSet')(app, mongoose);
+  require('./schema/GeneSetCollection')(app, mongoose);
 
   //then regular docs
   require('./schema/User')(app, mongoose);

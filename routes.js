@@ -47,6 +47,13 @@ exports = module.exports = function(app, passport) {
   app.get('/degust/:id/dge_r_code', require('./views/degust/index').dge_r_code);
   app.get('/degust/:id/kegg_titles', require('./views/degust/index').kegg_titles);
 
+  app.get('/gene-set-collections', require('./views/gene-set-collections/index').list);
+  app.get('/gene-set-collections/:id/delete', require('./views/gene-set-collections/index').del);
+  app.post('/gene-set-collections/gmt', upload.single('filename'), require('./views/gene-set-collections/index').upload_gmt);
+
+  app.get('/gene-sets', require('./views/gene-sets/index').list);
+  //app.post('/gene-sets', require('./views/gene-sets/index').upload);
+
   //sign up
   app.get('/signup/', require('./views/signup/index').init);
   app.post('/signup/', require('./views/signup/index').signup);

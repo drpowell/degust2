@@ -1,0 +1,46 @@
+extends ../../layouts/default
+
+block head
+  title Gene Set Collections
+
+block neck
+  link(rel='stylesheet', href='/views/about/index.min.css?#{cacheBreaker}')
+
+mixin show(list)
+  table.table
+    tr
+      th Name
+      th Number of Sets
+      th Created
+    each val in list
+      tr
+        td #{val.name}
+        td #{val.size}
+        td #{moment(val.createdAt).format("MMMM Do YYYY, h:mm:ss a")}
+        td
+          a(class="btn btn-danger btn-sm",href='/gene-set-collections/#{val._id}/delete') x
+
+block body
+  div.row
+    div.col-sm-6
+      div.page-header
+        h1 Gene Set Collections
+  div.row
+    div.col-sm-6
+        +show(collections)
+
+  hr
+
+  div.row
+    div.col-sm-10
+      form(name='upload', action='/gene-set-collections/gmt', method='post', enctype='multipart/form-data')
+        input(type='hidden', name='_csrf', value='#{csrf}')
+        |         
+        .form-group
+          label(for='filename') GMT Gene Set Upload
+          |           
+          input#filename(type='file', name='filename')
+          |           
+          p.help-block Upload a gene set GMT file
+        |         
+        button.btn.btn-primary(type='submit') Upload
