@@ -2,8 +2,18 @@
 
 
 exports.list = function(req, res, next) {
-	req.app.db.models.GeneSet.find({name: /N/i}, function(err, sets) {
-		res.json({num: sets.length});
+	var q = new RegExp(req.query.term,"i");
+	req.app.db.models.GeneSet.find({name: q}, function(err, sets) {
+		var arr = sets.map(function(s) {
+			return {label: s.name, id: s._id};
+		});
+		res.json(arr);
+	});
+};
+
+exports.get = function(req, res, next) {
+	req.app.db.models.GeneSet.findById(req.params.id).exec(function(err, set) {
+		res.json(set);
 	});
 };
 

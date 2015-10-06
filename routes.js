@@ -52,6 +52,7 @@ exports = module.exports = function(app, passport) {
   app.post('/gene-set-collections/gmt', upload.single('filename'), require('./views/gene-set-collections/index').upload_gmt);
 
   app.get('/gene-sets', require('./views/gene-sets/index').list);
+  app.get('/gene-sets/:id', require('./views/gene-sets/index').get);
   //app.post('/gene-sets', require('./views/gene-sets/index').upload);
 
   //sign up

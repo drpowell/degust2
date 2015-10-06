@@ -574,6 +574,20 @@ init_download_link = () ->
         window.open("data:text/csv,"+escape(d3.csv.format([keys].concat(rows))), "file.csv")
     )
 
+init_genesets = () ->
+    $('.geneset-save').on('click', () ->
+        console.log "SAVE"
+    )
+    $('.geneset-search input.search').autocomplete(
+        source: "/gene-sets"
+        minLength: 2
+        select: ( event, ui ) ->
+            if ui.item
+                d3.json("/gene-sets/#{ui.item.id}", (err, json) ->
+                    console.log "JSON", ui, json
+                )
+    );
+
 redraw_plot = () ->
     expr_plot.brush()
 
@@ -867,6 +881,7 @@ init_page = (use_backend) ->
     init_search()
     init_slider()
     init_download_link()
+    init_genesets()
 
     g_backend.request_init_data()
 
