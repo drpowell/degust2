@@ -37,6 +37,7 @@ class GeneData
         new_cols = cols.map((c) ->
                        idx: c.idx + "_avg"
                        name: c.name + "_avg"
+                       parent: c.name
                        type: 'fc_calc_avg'
                        calc: (d) => d[c.idx]
                     )

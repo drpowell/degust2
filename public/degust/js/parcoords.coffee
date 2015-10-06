@@ -41,6 +41,8 @@ class ParCoords
         return extent.map((v) -> v*1.05)
 
     # These methods just pass through
+    dimensions: () -> @parcoords.dimensions()
+    dimension_names: () -> @parcoords.dimension_names()
     highlight: (d) -> @parcoords.highlight(d)
     unhighlight: () -> @parcoords.unhighlight()
     on: (t,func) -> @parcoords.on(t,func)        # TODO - better abstraction for this

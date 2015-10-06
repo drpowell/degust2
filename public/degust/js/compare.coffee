@@ -438,6 +438,30 @@ init_charts = () ->
         heatmap.schedule_update(d)
     )
 
+    # Used to reorder the heatmap columns by the parcoords order
+    order_columns_by_parent = (columns, parent) ->
+        pos = {}
+        for i in [0...parent.length]
+            pos[parent[i]] = i
+        new_cols = columns.slice()
+        new_cols.sort((a,b) ->
+            if pos[a.parent]==pos[b.parent]
+                0 
+            else if pos[a.parent] < pos[b.parent]
+                -1
+            else
+                1
+        )
+        new_cols
+
+    parcoords.on("render", () ->
+        return if !heatmap.columns
+        dim_names = parcoords.dimension_names()
+        names = parcoords.dimensions().map((c) -> dim_names[c])
+        new_cols = order_columns_by_parent(heatmap.columns, names)
+        heatmap.reorder_columns(new_cols)
+    )
+
     #Heatmap
     heatmap = new Heatmap(
         elem: '#heatmap'

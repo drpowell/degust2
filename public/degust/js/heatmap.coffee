@@ -179,11 +179,14 @@ class Heatmap
         @worker.start([@data,@columns.map((c) -> {idx: c.idx})])
 
     _thinking: (bool) ->
+        @_is_thinking = bool
         @svg.select("g.genes").attr('opacity',if bool then 0.4 else 1)
 
     schedule_update: (data) ->
         @data=data if data
         return if !@data? || !@columns? || !@_enabled
+
+        scheduler.schedule('heatmap.render', () => )
 
         @_thinking(true)
         @_calc_order()
@@ -191,21 +194,33 @@ class Heatmap
     # update_columns(columns,extent,sel_column)
     #   columns - The DGE condition columns
     #   extent - the total range of all columns
-    #   sel_column - column to order rendering by
+    #   sel_column - column to order rendering by  (usually p-value so most significant "on top")
     update_columns: (@columns, extent, @sel_column) ->
         @max = d3.max(extent.map(Math.abs))
         @colorScale = d3.scale.linear()
                         .domain([-@max, 0, @max])
                         .range(["blue", "white", "red"]);
+        @_draw_columns()
+        @svg.attr("width", @opts.width).attr("height", @opts.h_pad + @opts.h * @columns.length)
 
+    reorder_columns: (columns) ->
+        @columns = columns
+        scheduler.schedule('heatmap.render', (() => 
+            @_draw_columns()
+            if !@_is_thinking
+                @_render_heatmap()
+        ), 200)
+
+    _draw_columns: () ->
         cols = @svg.select('.labels').selectAll('.label')
-                   .data(@columns)
+                   .data(@columns, (c) -> c.name)
         cols.enter().append('text').attr("class","label")
         cols.exit().remove()
-        cols.attr('x', @opts.label_width)
-            .attr('y', (d,i) => i * @opts.h + @opts.h/2)
-            .attr("text-anchor", "end")
+        cols.attr("text-anchor", "end")
             .text((d) -> d.name)
+            .transition()
+            .attr('x', @opts.label_width)
+            .attr('y', (d,i) => i * @opts.h + @opts.h/2)
         @_make_legend()
 
     _render_heatmap: () ->
@@ -222,7 +237,6 @@ class Heatmap
                 row_ids[id]=num_kept
                 num_kept += 1
 
-        @svg.attr("width", @opts.width).attr("height", @opts.h_pad + @opts.h * @columns.length)
         w = d3.min([@opts.h, (@opts.width - @opts.label_width) / num_kept])
 
         #console.log("max",@max,"kept",kept_data,"num", num_kept, w)
@@ -246,11 +260,12 @@ class Heatmap
                          res),
                          (d) -> d.col)
         cells.enter().append("rect").attr('class','cell')
-        cells.attr("x", (d) => d.row * w)
-             .attr("y", (d) => d.col * @opts.h)
-             .attr("width",  w)
+        cells.attr("width",  w)
              .attr("height", @opts.h)
              .style("fill", (d) => @colorScale(d.score))
+             .transition()
+             .attr("x", (d) => d.row * w)
+             .attr("y", (d) => d.col * @opts.h)
         cells.exit().remove()
 
         genes.on('mouseover', @opts.mouseover) if @opts.mouseover
