@@ -263,7 +263,6 @@ class Heatmap
         cells.attr("width",  w)
              .attr("height", @opts.h)
              .style("fill", (d) => @colorScale(d.score))
-             .transition()
              .attr("x", (d) => d.row * w)
              .attr("y", (d) => d.col * @opts.h)
         cells.exit().remove()
