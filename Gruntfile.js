@@ -266,6 +266,6 @@ module.exports = function(grunt) {
 
 
   grunt.registerTask('default', ['copy:vendor', 'newer:uglify', 'newer:less', 'newer:coffeeify', 'cssmin','concurrent']);
-  grunt.registerTask('build', ['copy:vendor', 'coffeeify', 'uglify', 'less', 'cssmin']);
+  grunt.registerTask('build', ['copy:vendor', 'uglify', 'less', 'cssmin', 'coffeeify']);
   grunt.registerTask('lint', ['jshint']);
 };
