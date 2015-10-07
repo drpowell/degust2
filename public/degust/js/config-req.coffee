@@ -1,5 +1,5 @@
 
-require('./lib/jquery.multiselect.min.js')
+require('./lib/jquery.multiselect.js')
 
 # Ours
 require('./config.coffee')

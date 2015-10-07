@@ -1,6 +1,6 @@
 
 # D3
-require("./lib/d3.v3.min.js")
+require("./lib/d3.v3.js")
 require("./lib/d3.parcoords.js")
 
 # Slick grid

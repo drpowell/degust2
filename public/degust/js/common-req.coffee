@@ -1,10 +1,10 @@
 
 # JQuery
-window.jQuery = window.$ = require('./lib/jquery-1.10.2.min.js')
+window.jQuery = window.$ = require('./lib/jquery-1.10.2.js')
 require('./lib/jquery-ui.js')
 
 # Bootstrap
-require('./lib/bootstrap-3.0.0.min.js')
+require('./lib/bootstrap-3.0.0.js')
 
 # Ours
 require('./version.coffee')
