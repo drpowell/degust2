@@ -27,7 +27,7 @@ out2 <- cbind(lfc,
 write.csv(out2, file="{{{output_dir}}}/output.txt", row.names=FALSE,na='')
 
 cat(
-   toJSON(list(prior.df=lrt$prior.df,
+   toJSON(list(prior_df=lrt$prior.df,
 			   design=data.frame(lrt$design)
 		 )),
    file="{{{output_dir}}}/extra.json"

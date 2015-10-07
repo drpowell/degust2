@@ -128,6 +128,17 @@ class WithBackendAnalysis
     request_init_data: () ->
         @_init_condition_selector()
 
+    _extra_info: (extra) ->
+        html = ""
+        if extra.sample_weights?
+            $('.weights-toggle').show()
+            html = $("<div></div>")
+            for i in [0...extra.sample_weights.length]
+                html.append("<div><span class='name'>#{extra.samples[i]}</span><span class='val'>#{extra.sample_weights[i]}</span></div>")
+        else
+            $('.weights-toggle').hide()
+        $('.weights').html(html)
+
     _request_dge_data: () ->
         columns = @current_selection
         return if columns.length <= 1
@@ -145,6 +156,9 @@ class WithBackendAnalysis
             if err
                 log_error(err)
                 return
+
+            @_extra_info(json.extra)
+
 
             data_cols = @settings.info_columns.map((n) -> {idx: n, name: n, type: 'info' })
             pri=true

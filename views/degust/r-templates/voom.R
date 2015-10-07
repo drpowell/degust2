@@ -18,8 +18,8 @@ out2 <- cbind(fit2$coef,
 write.csv(out2, file="{{{output_dir}}}/output.txt", row.names=FALSE,na='')
 
 cat(
-   toJSON(list(rank=fit2$rank, df.prior=fit2$df.prior, 
+   toJSON(list(rank=fit2$rank, df_prior=fit2$df.prior, 
 			   design=data.frame(fit2$design), contrasts=data.frame(fit2$contrasts),
-			   cov.coefficients=data.frame(fit2$cov.coefficients))),
+			   cov_coefficients=data.frame(fit2$cov.coefficients))),
    file="{{{output_dir}}}/extra.json"
 )

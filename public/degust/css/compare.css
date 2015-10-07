@@ -22,6 +22,11 @@
 .geneset-search .ui-autocomplete-loading {
     background: white url("images/ui-anim_basic_16x16.gif") right center no-repeat;
 }
+.weights {font-size: 12px;}
+.weights .name {font-weight: bold; text-align: right; width: 115px; display: inline-block;}
+.weights .val { width:20px; text-align: right; width: 50px; display: inline-block;}
+.weights-toggle { margin-top: 8px; font-size: 10px; }
+
 
 a#csv-download { font-size: 9pt; float: right; margin: -7px 30px 0 0; }
 
@@ -65,7 +70,7 @@ div.filter { font-size: 8pt; border: 1px solid #aaa; border-radius: 5px; backgro
 .r-code { font-size: 11px; }
 
 /* Hide all options or controls that are displayed conditionally */
-.conditions, .config, a.show-r-code, #dge-ma, #dge-pca, .ma-fc-col-opt, .pca-opts, #hidden-factors {
+.conditions, .config, a.show-r-code, #dge-ma, #dge-pca, .ma-fc-col-opt, .pca-opts, #hidden-factors, .weights-toggle  {
   display: none;
 }
 
