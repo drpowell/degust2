@@ -275,6 +275,10 @@ show_counts = 'no'   # Possible values 'yes','no','cpm'
 fdrThreshold = 1
 fcThreshold = 0
 
+fdrSlider = null
+fcSlider = null
+pcaDimsSlider = null
+
 numGenesThreshold = 50
 numGenesSlider = null    # Need a handle on this to update number of genes
 skipGenesThreshold = 50
@@ -347,6 +351,69 @@ may_set_plot_var = (typ) ->
         set_hash_var({plot: null})
     else
         set_hash_var({plot: typ})
+
+update_link = () ->
+    set_hash_var(get_state())
+
+update_from_link = () ->
+    set_state(get_hash_vars())
+
+
+set_plot = (typ) ->
+    switch typ
+        when 'mds'       then activate_pca_plot() ; true
+        when 'ma'        then activate_ma_plot() ; true
+        when 'parcoords' then activate_parcoords() ; true
+        else false
+
+
+get_state = () ->
+    plot = 
+        if $('#select-pc').hasClass('active')
+            'parcoords' 
+        else if $('#select-ma').hasClass('active')
+            'ma'
+        else if $('#select-pca').hasClass('active')
+            'mds'
+    state = {}
+    state.plot = plot
+    state.show_counts = show_counts if show_counts != 'no'
+    state.fdrThreshold = fdrThreshold  if fdrThreshold!=1
+    state.fcThreshold = fcThreshold if fcThreshold!=0
+    fc_rel = $('select#fc-relative option:selected').val()
+    state.fc_relative = fc_rel if fc_rel!=0
+    if plot=='mds'
+        state.numGenesThreshold = numGenesThreshold
+        state.skipGenesThreshold = skipGenesThreshold
+        state.pcaDimension = pcaDimension
+    # if plot=='ma'
+    #     ex = ma_plot.brush_extent()
+    state.searchStr = searchStr if searchStr
+
+    return state
+
+set_state = (state) ->
+    set_state(state.plot) if state.plot?
+
+    # if state.plot=='ma' && state.ma_brush?
+    #     ma_plot.brush_extent(state.ma_brush)
+
+    fdrSlider.set_val(state.fdrThreshold) if state.fdrThreshold?
+    fcSlider.set_val(state.fcThreshold, true) if state.fcThreshold?
+
+    if state.show_counts?
+        $('select#show-counts').val(state.show_counts)
+        update_flags()
+        gene_table.invalidate()
+
+    numGenesSlider.set_val(state.numGenesThreshold, true) if state.numGenesSlider?
+    skipGenesSlider.set_val(state.skipGenesSlider, true) if state.skipGenesSlider?
+    pcaDimsSlider.set_val(state.pcaDimension, true) if state.pcaDimension?
+
+    if state.searchStr
+        $(".tab-search input").val(state.searchStr)
+        gene_table.refresh()
+
 
 activate_parcoords = () ->
     may_set_plot_var('parcoords')
@@ -608,7 +675,7 @@ init_slider = () ->
                h_runfilters = window.setTimeout(redraw_plot, 10)
                fdrThreshold = v
     )
-    $('.shortcut-fdr a').click(() -> fdrSlider.set_val($(this).data('val'), true))
+    $('.shortcut-fdr a').click((e) -> e.preventDefault(); fdrSlider.set_val($(this).data('val'), true))
 
     fcSlider = new Slider(
           id: "#fcSlider"
@@ -625,7 +692,7 @@ init_slider = () ->
                h_runfilters = window.setTimeout(redraw_plot, 10)
                fcThreshold = v
     )
-    $('.shortcut-fc a').click(() -> fcSlider.set_val($(this).data('val'), true))
+    $('.shortcut-fc a').click((e) -> e.preventDefault(); fcSlider.set_val($(this).data('val'), true))
 
     numGenesSlider = new Slider(
           id: "#numGenesSlider"
@@ -763,15 +830,8 @@ process_dge_data = (data, columns) ->
         $('.show-counts-opt').show()
         $('#select-pca').show()
 
-
-    set_plot = (typ) ->
-        switch typ
-            when 'mds'       then activate_pca_plot() ; true
-            when 'ma'        then activate_ma_plot() ; true
-            when 'parcoords' then activate_parcoords() ; true
-            else false
-
-    set_plot(get_hash_vars()['plot']) || set_plot(get_default_plot_typ())
+    set_plot(get_default_plot_typ())
+    update_from_link() 
 
     # First time throught?  Setup the tutorial tour
     if !g_tour_setup
@@ -876,6 +936,7 @@ init_page = (use_backend) ->
     $('#select-ma a').click((e) ->  e.preventDefault(); activate_ma_plot())
     $('#select-pca a').click((e) -> e.preventDefault(); activate_pca_plot())
     $('a.show-r-code').click((e) -> e.preventDefault(); show_r_code())
+    $('a.update-link').click((e) -> e.preventDefault(); update_link())
 
     init_charts()
     init_search()
@@ -884,6 +945,8 @@ init_page = (use_backend) ->
     init_genesets()
 
     g_backend.request_init_data()
+
+    $(window).bind( 'hashchange', update_from_link )
 
 init = () ->
     code = get_url_vars()["code"]

@@ -203,5 +203,13 @@ class MAPlot
         @_draw_dots()
         @_brushed()
 
+    brush_extent: (ex) ->
+        if ex?
+            @mybrush.extent()
+            @mybrush(@svg.select(".brush"))
+            @mybrush.event(@svg.select(".brush"))
+        else
+            @mybrush.extent()
+
 
 window.MAPlot = MAPlot

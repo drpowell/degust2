@@ -16,6 +16,7 @@
 .tab-search { font-size: 9pt; float: right; margin-top: -10px; }
 .tab-search .active { background-color: gold; }
 
+.genesets-toggle, #genesets {display: none;}
 .geneset-save { width: 100%;}
 .geneset-search input.search { width: 150px; margin: 5px 0;}
 .geneset-search .ui-autocomplete-loading {
