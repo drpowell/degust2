@@ -23,8 +23,8 @@
     background: white url("images/ui-anim_basic_16x16.gif") right center no-repeat;
 }
 .weights {font-size: 12px;}
-.weights .name {font-weight: bold; text-align: right; width: 115px; display: inline-block;}
-.weights .val { width:20px; text-align: right; width: 50px; display: inline-block;}
+.weights .name {font-weight: bold; text-align: right; width: 95px; display: inline-block; margin-right: 10px;}
+.weights .val { width:20px; width: 50px; display: inline-block;}
 .weights-toggle { margin-top: 8px; font-size: 10px; }
 
 
