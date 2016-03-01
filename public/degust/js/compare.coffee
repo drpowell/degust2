@@ -604,8 +604,8 @@ set_gene_table = (data) ->
                 else
                     val
         if col.type in ['fdr','p']
-            hsh.width = 80
-            hsh.maxWidth = 100
+            hsh.width = 70
+            hsh.maxWidth = 70
         hsh
     )
     gene_table.set_data(data, columns)
@@ -617,9 +617,9 @@ fc_div = (n, column, row) ->
         count_columns = g_data.assoc_column_by_type('count',column.name)
         vals = count_columns.map((c,i) -> "<span>#{row[c.idx]}</span>")
         countStr = "<span class='counts'>(#{vals.join(" ")})</span>"
-    else if true or show_counts=='cpm'
+    else if show_counts=='cpm'
         count_columns = g_data.assoc_column_by_type('count',column.name)
-        vals = count_columns.map((c) -> 
+        vals = count_columns.map((c) ->
             tot = g_data.get_total(c)
             val = (1000000 * row[c.idx]/tot).toFixed(1)
             "<span>#{val}</span>"
