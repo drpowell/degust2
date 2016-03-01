@@ -591,19 +591,23 @@ set_gene_table = (data) ->
     column_keys = g_data.columns_by_type(['info','fdr','p'])
     column_keys = column_keys.concat(g_data.columns_by_type('fc_calc'))
     columns = column_keys.map((col) ->
-        id: col.idx
-        name: col.name
-        field: col.idx
-        sortable: true
-        formatter: (i,c,val,m,row) ->
-            if col.type in ['fc_calc']
-                fc_div(val, col, row)
-            else if col.type in ['fdr','p']
-                if val<0.01 then val.toExponential(2) else val.toFixed(2)
-            else
-                val
+        hsh =
+            id: col.idx
+            name: col.name
+            field: col.idx
+            sortable: true
+            formatter: (i,c,val,m,row) ->
+                if col.type in ['fc_calc']
+                    fc_div(val, col, row)
+                else if col.type in ['fdr','p']
+                    if val<0.01 then val.toExponential(2) else val.toFixed(2)
+                else
+                    val
+        if col.type in ['fdr','p']
+            hsh.width = 80
+            hsh.maxWidth = 100
+        hsh
     )
-
     gene_table.set_data(data, columns)
 
 fc_div = (n, column, row) ->
