@@ -615,12 +615,16 @@ fc_div = (n, column, row) ->
     countStr = ""
     if show_counts=='yes'
         count_columns = g_data.assoc_column_by_type('count',column.name)
-        vals = count_columns.map((c) -> row[c.idx])
-        countStr = "<span class='counts'>(#{vals})</span>"
-    else if show_counts=='cpm'
+        vals = count_columns.map((c,i) -> "<span>#{row[c.idx]}</span>")
+        countStr = "<span class='counts'>(#{vals.join(" ")})</span>"
+    else if true or show_counts=='cpm'
         count_columns = g_data.assoc_column_by_type('count',column.name)
-        vals = count_columns.map((c) -> tot=g_data.get_total(c) ; (1000000 * row[c.idx]/tot).toFixed(1))
-        countStr = "<span class='counts'>(#{vals})</span>"
+        vals = count_columns.map((c) -> 
+            tot = g_data.get_total(c)
+            val = (1000000 * row[c.idx]/tot).toFixed(1)
+            "<span>#{val}</span>"
+        )
+        countStr = "<span class='counts'>(#{vals.join(" ")})</span>"
     "<div class='#{colour}'>#{n.toFixed(2)}#{countStr}</div>"
 
 
