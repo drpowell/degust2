@@ -12,7 +12,7 @@ fit2 <- eBayes(fit2)
 out <- topTable(fit2, n=Inf, sort.by='none')
 
 out2 <- cbind(fit2$coef,
-			  out[, c('adj.P.Val','AveExpr')],
+			  out[, c('P.Value','adj.P.Val','AveExpr')],
 			  x[, c({{{export_cols}}})] )
 
 write.csv(out2, file="{{{output_dir}}}/output.txt", row.names=FALSE,na='')

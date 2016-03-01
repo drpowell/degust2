@@ -178,6 +178,9 @@ class WithBackendAnalysis
             )
             data_cols.push({idx: 'adj.P.Val', name: 'FDR', type: 'fdr'})
             data_cols.push({idx: 'AveExpr', name: 'AveExpr', type: 'avg'})
+            if data[0]["P.Value"]?
+                data_cols.push({idx: 'P.Value', name: 'P value', type: 'p'})
+
             if @settings.ec_column?
                 data_cols.push({idx: @settings.ec_column, name: 'EC', type: 'ec'})
             if @settings.link_column?
@@ -585,7 +588,7 @@ do_sort = (args) ->
     )
 
 set_gene_table = (data) ->
-    column_keys = g_data.columns_by_type(['info','fdr'])
+    column_keys = g_data.columns_by_type(['info','fdr','p'])
     column_keys = column_keys.concat(g_data.columns_by_type('fc_calc'))
     columns = column_keys.map((col) ->
         id: col.idx
@@ -595,7 +598,7 @@ set_gene_table = (data) ->
         formatter: (i,c,val,m,row) ->
             if col.type in ['fc_calc']
                 fc_div(val, col, row)
-            else if col.type in ['fdr']
+            else if col.type in ['fdr','p']
                 if val<0.01 then val.toExponential(2) else val.toFixed(2)
             else
                 val

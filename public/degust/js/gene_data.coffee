@@ -55,7 +55,7 @@ class GeneData
         for d,i in @data
             d.id = i if !d.id?
             for c in @columns
-                if c.type in ['fc','abs','avg','fdr','count']
+                if c.type in ['fc','abs','avg','fdr','count','p']
                     d[c.idx] = +d[c.idx]
         fdr_col = @column_by_type('fdr')
         @data.sort((a,b) -> a[fdr_col] - b[fdr_col])

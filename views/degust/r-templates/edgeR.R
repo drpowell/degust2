@@ -20,6 +20,7 @@ colnames(lfc) <- colnames(cont.matrix)
 
 # Output with column names for degust
 out2 <- cbind(lfc,
+			  'P.Value'   = out[,'PValue'],
 			  'adj.P.Val' = out[,'FDR'],
 			  'AveExpr'   = out[,'logCPM'],
 			  x[, c({{{export_cols}}})] )
