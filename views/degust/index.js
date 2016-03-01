@@ -47,7 +47,7 @@ var check_settings = function(settings) {
         }
         for (var i=0;i<arr.length;i+=1) {
             if (invalid.test(arr[i])) {
-                return false;               
+                return false;
             }
         }
         return true;
@@ -85,13 +85,13 @@ exports.settings = function(req, res, next){
         // Store this visit
         if (req.user) {
             req.app.db.models.Visited.update(
-                        {user:req.user._id, deSettings:settings._id}, 
+                        {user:req.user._id, deSettings:settings._id},
                         {user:req.user._id, deSettings:settings._id, last: Date.now()},
                         {upsert:true}, function(err, dat) {
-                res.json(get_settings(settings));                      
+                res.json(get_settings(settings));
             });
         } else {
-            res.json(get_settings(settings));           
+            res.json(get_settings(settings));
         }
     });
 
@@ -176,7 +176,7 @@ var templates = readTemplates();
 
 // Function to get all the columns with "counts" from the settings.  Returns in a defined order
 var count_columns = function(settings) {
-    var cols = {};  
+    var cols = {};
     settings.replicates.forEach(function(arr) {
         arr[1].forEach(function(c) { cols[c] = true; });
     });
@@ -199,7 +199,7 @@ var design_matrix = function(settings) {
     return {mat:mat, col_names:col_names, row_names: count_cols};
 };
 
-// Create contrast matrix.  Columns are in order of passed "conditions" array.   
+// Create contrast matrix.  Columns are in order of passed "conditions" array.
 // Rows in order of columns from design_matrix()
 var cont_matrix = function(settings, conds) {
     var mat = [];
@@ -220,8 +220,8 @@ var cont_matrix = function(settings, conds) {
 // Columns to send to client
 var export_cols = function(settings) {
     var arr = settings.info_columns;
-    settings.replicates.forEach(function(r) { 
-        arr = arr.concat(r[1]); 
+    settings.replicates.forEach(function(r) {
+        arr = arr.concat(r[1]);
     });
     if (settings.ec_column) {
         arr.push(settings.ec_column);
@@ -302,8 +302,8 @@ exports.dge = function(req, res, next){
 
         var prog = child_process.execFile("R", ['-q','--vanilla'], {}, function(err,_stdout,stderr) {
             if (err) {
-                console.log('error',input,err);
-                return next();
+                res.send(JSON.stringify({error: {input: input, msg: stderr}}));
+                return;
             }
             var output = fs.readFileSync(tmpobj.name +"/output.txt", 'utf8');
             var extra="";

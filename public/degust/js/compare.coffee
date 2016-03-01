@@ -148,14 +148,23 @@ class WithBackendAnalysis
         req = BackendCommon.script("dge","method=#{method}&fields=#{encodeURIComponent(JSON.stringify columns)}")
         start_loading()
         d3.json(req, (err, json) =>
+            done_loading()
+
+            if err
+                log_error(err)
+                return
+
+            if (json.error?)
+                log_error("Error doing DGE",json.error)
+                $('div#error-modal .modal-body pre.error-msg').text(json.error.msg)
+                $('div#error-modal .modal-body pre.error-input').text(json.error.input)
+                $('div#error-modal').modal()
+                return
+
             data = d3.csv.parse(json.csv);
             log_info("Downloaded DGE counts : rows=#{data.length}")
             log_debug("Downloaded DGE counts : rows=#{data.length}",data,err)
             log_info("Extra info : ",json.extra)
-            done_loading()
-            if err
-                log_error(err)
-                return
 
             @_extra_info(json.extra)
 
