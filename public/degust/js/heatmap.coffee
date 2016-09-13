@@ -83,29 +83,39 @@ calc_order = (e) ->
 class Heatmap
     constructor: (@opts) ->
         @opts.h_pad ?= 20
-        @opts.h ?= 30
-        @opts.width ?= 1000
+        @opts.h ?= 20
         @opts.label_width ?= 120
+        @opts.legend_height ?= 100;
+
         @opts.limit ?= @opts.width - @opts.label_width
+
+        @opts.width = d3.select(@opts.elem).node().clientWidth - 20;
+        @opts.limit = @opts.width - @opts.label_width;
 
         @svg = d3.select(@opts.elem).append('svg')
         @svg.append('g').attr("class", "labels")
         @svg.append('g').attr("class", "genes").attr("transform", "translate(#{@opts.label_width},0)")
-        @svg.attr("width", @opts.width).attr("height", 100)
+        @svg.attr("width", "100%").attr("height", 100)
 
         @info = @svg.append('text')
                     .attr("class", "info")
                     .attr("x", @opts.width-200)
                     .attr("y", 10)
 
-        @legend = d3.select(@opts.elem).append('svg')
-                    .attr("class", "legend")
-                    .attr("width", @opts.width)
-                    .attr("height", 58)
+        @legend = @svg.append('g').attr('class',"legend")
+
+        @dispatch = d3.dispatch("mouseover","mouseout");
+
 
         # Create a single wrapper for later use
         @worker = new WorkerWrapper(calc_order, (d) => @_worker_callback(d))
         @_enabled = true
+    resize: () ->
+        @opts.width = d3.select(@opts.elem).node().clientWidth - 20;
+        @opts.limit = @opts.width - @opts.label_width;
+        @info.attr("x", @opts.width-200)
+        @legend.attr("width", @opts.width)
+        @_redraw_all();
 
     # Enable/disable the heatmap.  When disabled it is hidden and does not update
     enabled: (enabled) ->
@@ -119,24 +129,25 @@ class Heatmap
         @legend.selectAll("*").remove()
 
         @legend.append('text')
-               .attr("x", @opts.width-110)
+               .attr("x", -10)
                .attr("y", 20)
                .attr("text-anchor", "end")
                .text("Heatmap log-fold-change ")
 
         width = 100
+        @legend.attr("transform", "translate(#{@opts.width-width}, #{@height - @opts.legend_height})")
+
         steps = width
         stepToVal = d3.scale.linear().domain([0, steps-1]).range([-@max, @max])
         vals = (v for v in [0 ... steps])
 
         g = @legend.append('g')
-                   .attr('transform', "translate(#{@opts.width-width},0)")
 
         rects = g.selectAll('rect')
                        .data(vals)
         rects.enter().append("rect")
                      .attr("x", (v) -> v*1.0*width/steps)
-                     .attr("height", 30)
+                     .attr("height", 20)
                      .attr("width", 1.0*width/steps)
                      .style("fill", (v) => @colorScale(stepToVal(v)))
 
@@ -147,7 +158,7 @@ class Heatmap
                   .tickSize(5)
         # Draw the ticks and rotate labels by 90%
         g.append('g')
-         .attr('transform', "translate(0, 30)")
+         .attr('transform', "translate(0, 20)")
          .call(axis)
           .selectAll("text")
             .style("text-anchor", "end")
@@ -200,8 +211,10 @@ class Heatmap
         @colorScale = d3.scale.linear()
                         .domain([-@max, 0, @max])
                         .range(["blue", "white", "red"]);
+        @height = @opts.legend_height + @opts.h_pad + (@opts.h * @columns.length);
+        @svg.attr("width", @opts.width)
+            .attr("height", @height)
         @_draw_columns()
-        @svg.attr("width", @opts.width).attr("height", @opts.h_pad + @opts.h * @columns.length)
 
     reorder_columns: (columns) ->
         @columns = columns
@@ -267,13 +280,15 @@ class Heatmap
              .attr("y", (d) => d.col * @opts.h)
         cells.exit().remove()
 
-        genes.on('mouseover', @opts.mouseover) if @opts.mouseover
-        genes.on('mouseout', @opts.mouseout) if @opts.mouseout
+        genes.on('mouseover', (d) => @dispatch.mouseover(d))
+        genes.on('mouseout', () => @dispatch.mouseout())
 
         #genes.on('mousedown', (e,l) -> console.log 'down', e,l)
         #genes.on('mouseup', (e,l) -> console.log 'up', e,l)
         #genes.on('mousemove', (e,l) -> console.log 'move', e,l)
 
+    on: (t,func) ->
+        @dispatch.on(t, func)
 
     # NOT IN USE - not sure how to get it right.  How should it interact with parallel-coords or ma-plot?
     _create_brush: (w) ->

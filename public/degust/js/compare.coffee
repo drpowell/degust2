@@ -559,15 +559,17 @@ init_charts = () ->
     heatmap = new Heatmap(
         elem: '#heatmap'
         width: $('.container').width()
-        mouseover: (d) ->
-            expr_plot.highlight([d])
-            msg = ""
-            for col in g_data.columns_by_type(['info'])
-              msg += "<span class='lbl'>#{col.name}: </span><span>#{d[col.idx]}</span>"
-            $('#heatmap-info').html(msg)
-        mouseout:  (d) ->
-            expr_plot.unhighlight()
-            $('#heatmap-info').html("")
+    )
+    heatmap.on("mouseover", (d) ->
+        expr_plot.highlight([d])
+        msg = ""
+        for col in g_data.columns_by_type(['info'])
+          msg += "<span class='lbl'>#{col.name}: </span><span>#{d[col.idx]}</span>"
+        $('#heatmap-info').html(msg)
+    )
+    heatmap.on("mouseout", (d) ->
+        expr_plot.unhighlight()
+        $('#heatmap-info').html("")
     )
 
 
@@ -908,13 +910,14 @@ update_data = () ->
     else if expr_plot == pca_plot
         cols = g_data.columns_by_type('fc_calc').map((c) -> c.name)
         count_cols = g_data.columns_by_type('count').filter((c) -> cols.indexOf(c.parent)>=0)
-        pca_plot.update_data(g_data.get_data(), count_cols)
+        pca_plot.update_data(g_data, count_cols)
 
     set_gene_table(g_data.get_data())
 
     # Update the heatmap
     if heatmap.enabled()
-        heatmap_dims = g_data.columns_by_type('fc_calc_avg')
+        #heatmap_dims = g_data.columns_by_type('fc_calc_avg')
+        heatmap_dims = g_data.columns_by_type('count')
         heatmap_extent = ParCoords.calc_extent(g_data.get_data(), heatmap_dims)
         heatmap.update_columns(heatmap_dims, heatmap_extent, pval_col)
         heatmap.schedule_update(g_data.get_data())
@@ -981,6 +984,7 @@ init_page = (use_backend) ->
     g_backend.request_init_data()
 
     $(window).bind( 'hashchange', update_from_link )
+    $(window).bind('resize', () -> heatmap.resize())
 
 init = () ->
     code = get_url_vars()["code"]
