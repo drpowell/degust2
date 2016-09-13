@@ -132,7 +132,7 @@ class BarGraph
              .attr("x", @width/2)
              .attr("y", -10)
              .style("text-anchor", "middle")
-             .text("Magnitude of each MDS dimension")
+             .text("% variance by MDS dimension")
 
         @svg.append("g")
              .attr("class", "x axis")
@@ -154,7 +154,7 @@ class BarGraph
              .attr("x", -60)
              .attr("y", -30)
              .style("text-anchor", "end")
-             .text("Magnitude")
+             .text("% variance")
 
         @svg.selectAll(".bar")
             .data(data)
@@ -181,7 +181,7 @@ class PCA
 
         # Want RMS distance (like in Limma), so divide by sqrt(n)
         r = numeric.div(r, Math.sqrt(matrix[0].length))
-        r
+        {pts: r, eigenvalues: svd.S}
 
     @variance: (X) ->
         sz = X.length
@@ -232,13 +232,16 @@ class GenePCA
         # Transpose to row per sample.
         by_gene = numeric.transpose(transformed)
 
-        comp = numeric.transpose(PCA.pca(by_gene))
+        pca_results = PCA.pca(by_gene)
+        comp = numeric.transpose(pca_results.pts)
         # 'comp' now contains components.  Each row is a dimension
 
         @scatter.draw(comp, @columns, dims)
 
+        tot_eigen = d3.sum(pca_results.eigenvalues)
         @barGraph.draw(comp[0..9].map((v,i) ->
-            range = d3.max(v) - d3.min(v)
+            #range = d3.max(v) - d3.min(v)
+            range = pca_results.eigenvalues[i]/tot_eigen * 100
             {lbl: "#{i+1}", val: range}
         ))
 
