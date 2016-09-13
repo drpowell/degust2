@@ -52,8 +52,10 @@ class GeneData
     # Add an "id" to each row.
     # Put smallest FDR first, want these *on top* of PC charts
     _process_data: () ->
+        @_by_id_cache = {}
         for d,i in @data
             d.id = i if !d.id?
+            @_by_id_cache[d.id] = d
             for c in @columns
                 if c.type in ['fc','abs','avg','fdr','count','p']
                     d[c.idx] = +d[c.idx]
@@ -138,6 +140,9 @@ class GeneData
             return
         @columns.push(col)
         @data.forEach((r) -> r[col.idx] = func(r))
+
+    row_by_id: (id) ->
+        @_by_id_cache[id]
 
     #get_columns: () -> @columns
 

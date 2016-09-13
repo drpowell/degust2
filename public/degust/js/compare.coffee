@@ -503,11 +503,12 @@ init_charts = () ->
         )
 
     ma_plot = new MAPlot({elem: '#dge-ma', filter: expr_filter})
+    ma_plot.on("mouseover", (rows) -> heatmap.highlight(rows))
+    ma_plot.on("mouseout", () -> heatmap.unhighlight())
 
     pca_plot = new GenePCA(
         elem: '#dge-pca'
         filter: expr_filter
-        gene_table: gene_table
         sel_dimension: (d) => pcaDimsSlider.set_val(+d, true)
         params: () ->
             skip: +skipGenesThreshold
@@ -558,7 +559,7 @@ init_charts = () ->
     #Heatmap
     heatmap = new Heatmap(
         elem: '#heatmap'
-        width: $('.container').width()
+        show_elem: '.show-heatmap'
     )
     heatmap.on("mouseover", (d) ->
         expr_plot.highlight([d])
@@ -571,6 +572,7 @@ init_charts = () ->
         expr_plot.unhighlight()
         $('#heatmap-info').html("")
     )
+    heatmap.on("need_update", () -> update_data())
 
 
 comparer = (x,y) -> (if x == y then 0 else (if x > y then 1 else -1))
@@ -894,9 +896,9 @@ update_data = () ->
     pval_col = g_data.column_by_type('fdr')
     color = colour_by_pval(pval_col)
 
-    extent = ParCoords.calc_extent(g_data.get_data(), dims)
 
     if expr_plot == parcoords
+        extent = ParCoords.calc_extent(g_data.get_data(), dims)
         parcoords.update_data(g_data.get_data(), dims, extent, color)
     else if expr_plot == ma_plot
         ma_fc = $('select#ma-fc-col option:selected').val()
@@ -916,11 +918,13 @@ update_data = () ->
 
     # Update the heatmap
     if heatmap.enabled()
-        #heatmap_dims = g_data.columns_by_type('fc_calc_avg')
-        heatmap_dims = g_data.columns_by_type('count')
-        heatmap_extent = ParCoords.calc_extent(g_data.get_data(), heatmap_dims)
-        heatmap.update_columns(heatmap_dims, heatmap_extent, pval_col)
-        heatmap.schedule_update(g_data.get_data())
+        if (!heatmap.show_replicates)
+            heatmap_dims = g_data.columns_by_type('fc_calc_avg')
+        else
+            count_cols = dims.map((c) -> g_data.assoc_column_by_type('count',c.name))
+            count_cols =[].concat.apply([], count_cols)
+            heatmap_dims = Normalize.normalize(g_data, count_cols)
+        heatmap.update_columns(g_data, heatmap_dims, pval_col, true)
 
     # Ensure the brush callbacks are called (updates heatmap & table)
     expr_plot.brush()

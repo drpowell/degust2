@@ -71,8 +71,12 @@ div.filter { font-size: 8pt; border: 1px solid #aaa; border-radius: 5px; backgro
 .error-msg, .error-input { font-size: 11px; }
 
 /* Hide all options or controls that are displayed conditionally */
-.conditions, .config, a.show-r-code, #dge-ma, #dge-pca, .ma-fc-col-opt, .pca-opts, #hidden-factors, .weights-toggle  {
+.conditions, .config, a.show-r-code, a.show-heatmap, #dge-ma, #dge-pca, .ma-fc-col-opt, .pca-opts, #hidden-factors, .weights-toggle  {
   display: none;
+}
+
+a.show-r-code, a.show-heatmap, a.update-link {
+  font-size: 10px;
 }
 
 .pca-opts { border-top: solid 1px black; margin-top: 5px}
@@ -108,6 +112,11 @@ div.filter { font-size: 8pt; border: 1px solid #aaa; border-radius: 5px; backgro
   stroke: #000;
   shape-rendering: crispEdges;
 }
+
+#heatmap #arrow, #heatmap .arrow {
+    stroke-width:2;
+}
+
 
 /* PCA-plot / MDS-plot ***********************************************************/
 #dge-pca .bar-chart { position: absolute; bottom: 0; left: 510px; }
