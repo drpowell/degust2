@@ -1,3 +1,7 @@
+viridis = require('./lib/scale-color-perceptual/hex/viridis.json')
+inferno = require('./lib/scale-color-perceptual/hex/inferno.json')
+magma   = require('./lib/scale-color-perceptual/hex/magma.json')
+plasma  = require('./lib/scale-color-perceptual/hex/plasma.json')
 
 # Calculate an ordering for the genes.
 # This uses a greedy N^2 algorithm to find the next closest data point on each iteration.
@@ -106,10 +110,14 @@ class Heatmap
 
         @dispatch = d3.dispatch("mouseover","mouseout");
 
+        @get_color_scale = @_color_red_blue;
 
         # Create a single wrapper for later use
         @worker = new WorkerWrapper(calc_order, (d) => @_worker_callback(d))
         @_enabled = true
+        @_make_menu(@opts.elem);
+
+
     resize: () ->
         @opts.width = d3.select(@opts.elem).node().clientWidth - 20;
         @opts.limit = @opts.width - @opts.label_width;
@@ -125,7 +133,68 @@ class Heatmap
         else
             @_enabled
 
+    _make_menu: (el) ->
+        print_menu = [] #(new Print(@svg, "heatmap")).menu()
+        menu = [
+                divider: true
+            ,
+                title: 'Colour scheme'
+            ,
+                title: 'Red/white/blue'
+                action: (elm, d, i) =>
+                    @get_color_scale = @_color_red_blue;
+                    @_redraw_all();
+            ,
+                title: 'Red/black/green'
+                action: (elm, d, i) =>
+                    @get_color_scale = @_color_red_green;
+                    @_redraw_all();
+            ,
+                title: 'Viridis'
+                action: (elm, d, i) =>
+                    @get_color_scale = @_color_viridis(viridis);
+                    @_redraw_all();
+            ,
+                title: 'Inferno',
+                action: (elm, d, i) =>
+                    @get_color_scale = @_color_viridis(inferno);
+                    @_redraw_all();
+            ,
+                title: 'Magma',
+                action: (elm, d, i) =>
+                    @get_color_scale = @_color_viridis(magma);
+                    @_redraw_all();
+            ,
+                title: 'Plasma',
+                action: (elm, d, i) =>
+                    @get_color_scale = @_color_viridis(plasma);
+                    @_redraw_all();
+        ]
+        d3.select(el).on('contextmenu', d3.contextMenu(print_menu.concat(menu))) # attach menu to element
+
+    _color_red_blue : () ->
+        return d3.scale.linear()
+                 .domain([-@max, 0, @max])
+                 .range(["blue", "white", "red"]);
+
+    _color_red_green : () ->
+        d3.scale.linear()
+                 .domain([-@max, 0, @max])
+                 .range(["green", "black", "red"]);
+
+    _color_viridis: (scale) ->
+        () ->
+          d3.scale.quantize()
+             .domain([-@max, @max])
+             .range(scale);
+
+    _redraw_all : () ->
+        @_draw_columns();
+        @_render_heatmap();
+
+
     _make_legend: () ->
+        @colorScale = @get_color_scale()
         @legend.selectAll("*").remove()
 
         @legend.append('text')
@@ -208,9 +277,6 @@ class Heatmap
     #   sel_column - column to order rendering by  (usually p-value so most significant "on top")
     update_columns: (@columns, extent, @sel_column) ->
         @max = d3.max(extent.map(Math.abs))
-        @colorScale = d3.scale.linear()
-                        .domain([-@max, 0, @max])
-                        .range(["blue", "white", "red"]);
         @height = @opts.legend_height + @opts.h_pad + (@opts.h * @columns.length);
         @svg.attr("width", @opts.width)
             .attr("height", @height)
@@ -242,6 +308,12 @@ class Heatmap
         sorted = @data[0..]
         sorted.sort((a,b) => a[@sel_column] - b[@sel_column])
         kept_data[d.id]=d for d in sorted[0..@opts.limit-1]
+
+        # Recalc @max?
+        # flatten = (arr) -> [].concat.apply([], arr)
+        # ex = d3.extent(flatten(@data.map((r) => d3.extent(@columns.map((c) -> r[c.idx])))))
+        # @max = d3.max(ex.map(Math.abs))
+        # @_make_legend()
 
         row_ids={}
         num_kept=0
