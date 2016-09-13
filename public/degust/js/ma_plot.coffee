@@ -24,7 +24,7 @@ class MAPlot
                      .style("opacity", 0)
 
         # Create a custom 'brush' event.  This will allow same API as par-coords
-        @dispatch = d3.dispatch("brush")
+        @dispatch = d3.dispatch("brush","mouseover","mouseout")
 
         #@testInfo = d3.select(@opts.elem).append('div')
 
@@ -127,8 +127,10 @@ class MAPlot
 
         if m.length>0
             @_show_info(loc, m)
+            @dispatch.mouseover(m)
         else
             @_hide_info()
+            @dispatch.mouseout()
 
 
     # Display and fill in the tooltip
