@@ -132,6 +132,13 @@ class GeneData
         @_totals[col.name] = d3.sum( @data.map( (d) -> d[col.idx] ) )
         @_totals[col.name]
 
+    add_column: (col, func) ->
+        if (@column_by_idx(col.idx))
+            log_warning("already have added column : ",col)
+            return
+        @columns.push(col)
+        @data.forEach((r) -> r[col.idx] = func(r))
+
     #get_columns: () -> @columns
 
     get_data: () -> @data

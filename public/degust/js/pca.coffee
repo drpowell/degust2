@@ -187,11 +187,6 @@ class PCA
         sz = X.length
         numeric.sum(numeric.pow(X,2))/sz - Math.pow(numeric.sum(X),2)/(sz*sz)
 
-log_moderation = 10.0
-
-variance_key = "_variance"
-transform_key = "_transformed_"
-
 class GenePCA
     constructor: (@opts) ->
         @scatter = new ScatterPlot(@opts.elem)
@@ -206,47 +201,35 @@ class GenePCA
     # Also, compute the per-column (library) size for later normalization
     update_data: (@data, @columns) ->
         # Compute the library size for each column (for normalising in _compute_variance)
-        @lib_size = {}
-        @columns.forEach((c) => @lib_size[c.idx] = 0)
-        @data.forEach((row) =>
-            @columns.forEach((c) =>
-                @lib_size[c.idx] += row[c.idx]
-            ))
-
-
+        @norm_cols = Normalize.normalize(@data, @columns)
+        @variances = {}
+        @rows = @data.get_data()
+        @rows.forEach((row) => @variances[row.id] = @_compute_variance(row))
         @redraw()
 
     # Convert to log2 counts, and normalize for library size, and compute the gene variance.
     _compute_variance: (row) ->
-        transformed =  @columns.map((col) =>
-            norm = @lib_size[col.idx]/1000000.0
-            val = row[col.idx]/norm
-            t_val = Math.log(log_moderation + val)/Math.log(2)
-            row[transform_key+col.idx] = t_val
-            t_val
-        )
-        row[variance_key] = PCA.variance(transformed)
+        vals = @norm_cols.map((col) => row[col.idx])
+        PCA.variance(vals)
 
     redraw: () ->
         {skip:skip_genes, num:num_genes, dims:dims} = @opts.params()
         dims = [1,2] if dims.length!=2
 
-        # Log transform counts
-        kept_data = @data.filter((d) => @opts.filter(d))
+        # Log transformed counts
+        kept_data = @rows.filter((d) => @opts.filter(d))
                        #  .map((row) -> d3.zip(row, lib_size).map(([val,size]) ->
-        kept_data.forEach((row) => @_compute_variance(row))
 
-        top_genes = kept_data.sort((a,b) -> b[variance_key] - a[variance_key])
+        top_genes = kept_data.sort((a,b) => @variances[b.id] - @variances[a.id])
         top_genes = top_genes[skip_genes ... (skip_genes + num_genes)]
 
         @opts.gene_table.set_data(top_genes) if @opts.gene_table
 
         # Get the transformed counts
-        transformed = top_genes.map((row) => @columns.map((col) ->
-                                                row[transform_key+col.idx]))
+        transformed = top_genes.map((row) => @norm_cols.map((col) -> row[col.idx]))
+
         # Transpose to row per sample.
         by_gene = numeric.transpose(transformed)
-
 
         comp = numeric.transpose(PCA.pca(by_gene))
         # 'comp' now contains components.  Each row is a dimension
