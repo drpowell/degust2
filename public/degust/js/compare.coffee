@@ -927,11 +927,13 @@ update_data = () ->
     if heatmap.enabled()
         if (!heatmap.show_replicates)
             heatmap_dims = g_data.columns_by_type('fc_calc_avg')
+            centre=true
         else
             count_cols = dims.map((c) -> g_data.assoc_column_by_type('count',c.name))
             count_cols =[].concat.apply([], count_cols)
             heatmap_dims = Normalize.normalize(g_data, count_cols)
-        heatmap.update_columns(g_data, heatmap_dims, pval_col, true)
+            centre=true
+        heatmap.update_columns(g_data, heatmap_dims, centre)
 
     # Ensure the brush callbacks are called (updates heatmap & table)
     expr_plot.brush()
