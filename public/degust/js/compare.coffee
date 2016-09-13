@@ -331,11 +331,14 @@ gene_table_mouseover = (item) ->
     expr_plot.highlight([item])
     ec_col = g_data.column_by_type('ec')
     kegg.highlight(item[ec_col])
+    heatmap.highlight([item])
 
 gene_table_mouseout = () ->
     expr_plot.unhighlight()
     $('#gene-info').html('')
     kegg.unhighlight()
+    heatmap.unhighlight()
+
 
 # Rules for guess best info link based on some ID
 guess_link_info =
@@ -515,6 +518,10 @@ init_charts = () ->
             num: +numGenesThreshold
             dims: [+pcaDimension, +pcaDimension+1]
         )
+    pca_plot.on("top_genes", (top) =>
+        gene_table.set_data(top)
+        heatmap.schedule_update(top)
+    )
 
     kegg = new Kegg(
         elem: 'div#kegg-image'

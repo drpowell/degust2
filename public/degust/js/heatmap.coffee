@@ -89,17 +89,22 @@ class Heatmap
         @opts.h_pad ?= 20
         @opts.h ?= 20
         @opts.label_width ?= 120
-        @opts.legend_height ?= 100;
+        @opts.legend_height ?= 40;
 
         @opts.limit ?= @opts.width - @opts.label_width
 
         @opts.width = d3.select(@opts.elem).node().clientWidth - 20;
         @opts.limit = @opts.width - @opts.label_width;
 
+        if (@opts.show_elem?)
+            $(@opts.show_elem).click((e) => e.preventDefault(); @enabled(true); @dispatch.need_update())
+
         @svg = d3.select(@opts.elem).append('svg')
         @svg.append('g').attr("class", "labels")
         @svg.append('g').attr("class", "genes").attr("transform", "translate(#{@opts.label_width},0)")
         @svg.attr("width", "100%").attr("height", 100)
+
+        @mk_highlight()
 
         @info = @svg.append('text')
                     .attr("class", "info")
@@ -108,15 +113,31 @@ class Heatmap
 
         @legend = @svg.append('g').attr('class',"legend")
 
-        @dispatch = d3.dispatch("mouseover","mouseout");
+        @dispatch = d3.dispatch("mouseover","mouseout","need_update");
 
         @get_color_scale = @_color_red_blue;
 
         # Create a single wrapper for later use
         @worker = new WorkerWrapper(calc_order, (d) => @_worker_callback(d))
         @_enabled = true
-        @_make_menu(@opts.elem);
+        @show_replicates = false
+        @_make_menu(@opts.elem)
 
+    mk_highlight: () ->
+        @svg.append("defs")
+            .append("marker")
+                .attr({
+                    "id":"arrow",
+                    "viewBox":"0 -5 10 10",
+                    "refX":5,
+                    "refY":0,
+                    "markerWidth":4,
+                    "markerHeight":4,
+                    "orient":"auto"
+                })
+                .append("path")
+                    .attr("d", "M0,-5L10,0L0,5")
+                    .attr("class","arrowHead");
 
     resize: () ->
         @opts.width = d3.select(@opts.elem).node().clientWidth - 20;
@@ -130,12 +151,24 @@ class Heatmap
         if enabled?
             @_enabled = enabled
             $(@opts.elem).toggle(enabled)
+            if (@opts.show_elem?)
+                $(@opts.show_elem).toggle(!enabled)
         else
             @_enabled
 
     _make_menu: (el) ->
         print_menu = [] #(new Print(@svg, "heatmap")).menu()
         menu = [
+                divider: true
+            ,
+                title: 'Hide heatmap'
+                action: () => @enabled(false)
+            ,
+                title: 'Toggle show replicates'
+                action: () =>
+                    @show_replicates = !@show_replicates
+                    @dispatch.need_update()
+            ,
                 divider: true
             ,
                 title: 'Colour scheme'
@@ -179,7 +212,7 @@ class Heatmap
 
     _color_red_green : () ->
         d3.scale.linear()
-                 .domain([-@max, 0, @max])
+                 .domain([-@max/2, 0, @max/2])
                  .range(["green", "black", "red"]);
 
     _color_viridis: (scale) ->
@@ -256,31 +289,52 @@ class Heatmap
     # Calculate the order of genes for the heatmap.  This uses the 'calc_order' function
     # from above, wrapped in a web-worker
     _calc_order: () ->
-        @worker.start([@data,@columns.map((c) -> {idx: c.idx})])
+        @worker.start([@data, @columns.map((c) -> {idx: c.idx})])
 
     _thinking: (bool) ->
         @_is_thinking = bool
         @svg.select("g.genes").attr('opacity',if bool then 0.4 else 1)
 
-    schedule_update: (data) ->
-        @data=data if data
-        return if !@data? || !@columns? || !@_enabled
+    # Update which rows are displayed (set in update_columns())
+    schedule_update: (rows) ->
+        @rows=rows if rows
+        return if !@rows? || !@columns? || !@_enabled
 
         scheduler.schedule('heatmap.render', () => )
+
+        # Pull out of @data_all, just the rows we want
+        @data = @rows.map((r) => @data_all[r.id])
+        # Recalc @max? and redraw legend?
 
         @_thinking(true)
         @_calc_order()
 
-    # update_columns(columns,extent,sel_column)
+    # update_columns(data, columns,extent,sel_column)
     #   columns - The DGE condition columns
     #   extent - the total range of all columns
     #   sel_column - column to order rendering by  (usually p-value so most significant "on top")
-    update_columns: (@columns, extent, @sel_column) ->
-        @max = d3.max(extent.map(Math.abs))
+    update_columns: (@data_object, @columns, @sel_column, centre) ->
         @height = @opts.legend_height + @opts.h_pad + (@opts.h * @columns.length);
         @svg.attr("width", @opts.width)
             .attr("height", @height)
+
+        @data_all = {}   # Indexed by row.id
+        @data_object.get_data().forEach((r) =>
+            @data_all[r.id] = if centre then @_centre(r) else r
+        )
+        extent = ParCoords.calc_extent(d3.values(@data_all), @columns)
+        @max = d3.max(extent.map(Math.abs))
         @_draw_columns()
+        @schedule_update(@data_object.get_data())
+
+    # Given the row, copy over @columns, but centered (and the @sel_column)
+    _centre: (row) ->
+        m = d3.mean(@columns.map((c) -> row[c.idx]))
+        res = {}
+        res.id = row.id
+        res[@sel_column.idx] = row[@sel_column.idx]
+        @columns.map((c) -> res[c.idx] = row[c.idx] - m)
+        res
 
     reorder_columns: (columns) ->
         @columns = columns
@@ -305,54 +359,46 @@ class Heatmap
     _render_heatmap: () ->
         @_thinking(false)
         kept_data = {}
-        sorted = @data[0..]
-        sorted.sort((a,b) => a[@sel_column] - b[@sel_column])
-        kept_data[d.id]=d for d in sorted[0..@opts.limit-1]
+        @data.sort((a,b) => a[@sel_column] - b[@sel_column])
+        kept_data[d.id]=d for d in @data[0..@opts.limit-1]
 
-        # Recalc @max?
-        # flatten = (arr) -> [].concat.apply([], arr)
-        # ex = d3.extent(flatten(@data.map((r) => d3.extent(@columns.map((c) -> r[c.idx])))))
-        # @max = d3.max(ex.map(Math.abs))
-        # @_make_legend()
-
-        row_ids={}
         num_kept=0
+        rows = []
         for id in (@order || data.map((d) -> d.id))
             if kept_data[id]
-                row_ids[id]=num_kept
+                rows.push(kept_data[id])
                 num_kept += 1
 
-        w = d3.min([@opts.h, (@opts.width - @opts.label_width) / num_kept])
+        @cell_w = w = d3.min([@opts.h, (@opts.width - @opts.label_width) / num_kept])
 
         #console.log("max",@max,"kept",kept_data,"num", num_kept, w)
 
         # @_create_brush(w)
 
         genes = @svg.select(".genes").selectAll("g.gene")
-                    .data(d3.values(kept_data)) #, (d) -> d.id)
+                    .data(rows)
 
         genes.enter().append("g").attr("class","gene")
         genes.exit().remove()
 
         cells = genes.selectAll(".cell")
-                     .data(((d) =>
-                         if !row_ids[d.id]?
-                             log_info("missing row_ids[#{d.id}]")
-                             return
+                     .data(((d,rnum) =>
                          res=[]
                          for i,c of @columns
-                             res.push {row:row_ids[d.id], col:i, score: d[c.idx], id: d.id }
+                             res.push {row:rnum, col:i, score: d[c.idx], id: d.id }
                          res),
                          (d) -> d.col)
         cells.enter().append("rect").attr('class','cell')
-        cells.attr("width",  w)
+        cells.attr("width",  Math.ceil(w))
              .attr("height", @opts.h)
              .style("fill", (d) => @colorScale(d.score))
-             .attr("x", (d) => d.row * w)
+             .attr("x", (d) => Math.round(d.row * w))
              .attr("y", (d) => d.col * @opts.h)
         cells.exit().remove()
 
-        genes.on('mouseover', (d) => @dispatch.mouseover(d))
+        genes.on('mouseover', (d) =>
+            @dispatch.mouseover(@data_object.row_by_id(d.id))
+        )
         genes.on('mouseout', () => @dispatch.mouseout())
 
         #genes.on('mousedown', (e,l) -> console.log 'down', e,l)
@@ -361,6 +407,31 @@ class Heatmap
 
     on: (t,func) ->
         @dispatch.on(t, func)
+
+    highlight: (rows) ->
+        return if !@_enabled || @_is_thinking
+        pos = rows.map((r) => @order.indexOf(r.id)).filter((p) -> p>=0)
+        #console.log rows,pos
+        if pos.length==0
+            @unhighlight()
+            return
+
+        highlight = @svg.select(".genes").selectAll(".highlight").data(pos)
+        highlight.exit().remove()
+        highlight.enter()
+                .append("line")
+                .attr("class":"arrow highlight")
+                .attr("marker-end":"url(#arrow)")
+                .attr("y1", @opts.h*@columns.length+20)
+                .attr("y2", @opts.h*@columns.length)
+        highlight.transition()
+                .attr("x1", (d) => Math.round((d+0.5)*@cell_w))
+                .attr("y1", @opts.h*@columns.length+20)
+                .attr("x2": (d) => Math.round((d+0.5)*@cell_w))
+                .attr("y2", @opts.h*@columns.length)
+
+    unhighlight: () ->
+        @svg.select(".genes").selectAll(".highlight").remove()
 
     # NOT IN USE - not sure how to get it right.  How should it interact with parallel-coords or ma-plot?
     _create_brush: (w) ->
