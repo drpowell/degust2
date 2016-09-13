@@ -91,10 +91,7 @@ class Heatmap
         @opts.label_width ?= 120
         @opts.legend_height ?= 40;
 
-        @opts.limit ?= @opts.width - @opts.label_width
-
         @opts.width = d3.select(@opts.elem).node().clientWidth - 20;
-        @opts.limit = @opts.width - @opts.label_width;
 
         if (@opts.show_elem?)
             $(@opts.show_elem).click((e) => e.preventDefault(); @enabled(true); @dispatch.need_update())
@@ -141,7 +138,6 @@ class Heatmap
 
     resize: () ->
         @opts.width = d3.select(@opts.elem).node().clientWidth - 20;
-        @opts.limit = @opts.width - @opts.label_width;
         @info.attr("x", @opts.width-200)
         @legend.attr("width", @opts.width)
         @_redraw_all();
@@ -309,11 +305,10 @@ class Heatmap
         @_thinking(true)
         @_calc_order()
 
-    # update_columns(data, columns,extent,sel_column)
+    # update_columns(data, columns,extent)
     #   columns - The DGE condition columns
     #   extent - the total range of all columns
-    #   sel_column - column to order rendering by  (usually p-value so most significant "on top")
-    update_columns: (@data_object, @columns, @sel_column, centre) ->
+    update_columns: (@data_object, @columns, centre) ->
         @height = @opts.legend_height + @opts.h_pad + (@opts.h * @columns.length);
         @svg.attr("width", @opts.width)
             .attr("height", @height)
@@ -327,12 +322,11 @@ class Heatmap
         @_draw_columns()
         @schedule_update(@data_object.get_data())
 
-    # Given the row, copy over @columns, but centered (and the @sel_column)
+    # Given the row, copy over @columns, but centered 
     _centre: (row) ->
         m = d3.mean(@columns.map((c) -> row[c.idx]))
         res = {}
         res.id = row.id
-        res[@sel_column.idx] = row[@sel_column.idx]
         @columns.map((c) -> res[c.idx] = row[c.idx] - m)
         res
 
@@ -359,19 +353,18 @@ class Heatmap
     _render_heatmap: () ->
         @_thinking(false)
         kept_data = {}
-        @data.sort((a,b) => a[@sel_column] - b[@sel_column])
-        kept_data[d.id]=d for d in @data[0..@opts.limit-1]
+        kept_data[d.id]=d for d in @data
 
-        num_kept=0
+        @cell_w = w = d3.min([@opts.h, (@opts.width - @opts.label_width) / @data.length])
+
+        # Make rows contain only the first that can be distinctly plotted
         rows = []
-        for id in (@order || data.map((d) -> d.id))
-            if kept_data[id]
-                rows.push(kept_data[id])
-                num_kept += 1
-
-        @cell_w = w = d3.min([@opts.h, (@opts.width - @opts.label_width) / num_kept])
-
-        #console.log("max",@max,"kept",kept_data,"num", num_kept, w)
+        last_x = undefined
+        for rnum in [0...@order.length]
+            x = Math.round(rnum * w)
+            if (!last_x? || x!=last_x)
+                rows.push({x:x, rest:kept_data[@order[rnum]]})
+                last_x = x
 
         # @_create_brush(w)
 
@@ -385,19 +378,19 @@ class Heatmap
                      .data(((d,rnum) =>
                          res=[]
                          for i,c of @columns
-                             res.push {row:rnum, col:i, score: d[c.idx], id: d.id }
+                             res.push {x:d.x, col:i, score: d.rest[c.idx], id: d.rest.id }
                          res),
                          (d) -> d.col)
         cells.enter().append("rect").attr('class','cell')
         cells.attr("width",  Math.ceil(w))
              .attr("height", @opts.h)
              .style("fill", (d) => @colorScale(d.score))
-             .attr("x", (d) => Math.round(d.row * w))
+             .attr("x", (d) => d.x)
              .attr("y", (d) => d.col * @opts.h)
         cells.exit().remove()
 
         genes.on('mouseover', (d) =>
-            @dispatch.mouseover(@data_object.row_by_id(d.id))
+            @dispatch.mouseover(@data_object.row_by_id(d.rest.id))
         )
         genes.on('mouseout', () => @dispatch.mouseout())
 
