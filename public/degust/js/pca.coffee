@@ -195,6 +195,7 @@ class GenePCA
                            click: (d) => if @opts.sel_dimension?
                                              @opts.sel_dimension(d.lbl)
                         )
+        @dispatch = d3.dispatch("top_genes")
 
     # Note, this is naughty - it writes to the 'data' array a "_variance" column
     # and several "_transformed_" columns.
@@ -223,7 +224,7 @@ class GenePCA
         top_genes = kept_data.sort((a,b) => @variances[b.id] - @variances[a.id])
         top_genes = top_genes[skip_genes ... (skip_genes + num_genes)]
 
-        @opts.gene_table.set_data(top_genes) if @opts.gene_table
+        @dispatch.top_genes(top_genes)
 
         # Get the transformed counts
         transformed = top_genes.map((row) => @norm_cols.map((col) -> row[col.idx]))
@@ -248,5 +249,9 @@ class GenePCA
         # Pass
     unhighlight: () ->
         # Pass
+
+    on: (t,func) ->
+        @dispatch.on(t, func)
+
 
 window.GenePCA = GenePCA
