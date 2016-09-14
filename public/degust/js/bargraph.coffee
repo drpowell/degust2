@@ -2,12 +2,18 @@ class BarGraph
     constructor: (@opts) ->
         @opts.tot_width  ||= 200
         @opts.tot_height ||= 200
+        @opts.margin_t ||= 20
+        @opts.margin_l ||= 50
+        @opts.margin_r ||= 10
+        @opts.margin_b ||= 40
         @opts.ylabel || = ''
         @opts.xlabel || = ''
         @opts.title ||= ''
+        @opts.fill ||= () -> 'steelblue'
+        @opts.rotate_labels ||= false
         @opts.xordinal = true if !@opts.xordinal?
 
-        margin = {top: 20, right: 10, bottom: 40, left: 40}
+        margin = {top: @opts.margin_t, right: @opts.margin_r, bottom: @opts.margin_b, left: @opts.margin_l}
         @width = @opts.tot_width - margin.left - margin.right
         @height = @opts.tot_height - margin.top - margin.bottom
 
@@ -57,9 +63,14 @@ class BarGraph
             .append("text")
              .attr('class', 'label')
              .attr("x", @width/2)
-             .attr("y", 30)
+             .attr("y", @opts.margin_b-10)
              .style("text-anchor", "middle")
              .text(@opts.xlabel)
+
+        if @opts.rotate_labels
+          @svg.selectAll(".x.axis .tick text")
+              .attr("transform", "rotate(-90) translate(-10,-15)")
+              .style("text-anchor", "end")
 
         @svg.append("g")
              .attr("class", "y axis")
@@ -67,8 +78,8 @@ class BarGraph
            .append("text")
              .attr('class', 'label')
              .attr("transform", "rotate(-90)")
-             .attr("x", -60)
-             .attr("y", -30)
+             .attr("x", -40)
+             .attr("y", 20-@opts.margin_l)
              .style("text-anchor", "end")
              .text(@opts.ylabel)
 
@@ -80,6 +91,7 @@ class BarGraph
               .attr("width", (d) => if d.width then @x(d.width) else @x.rangeBand())
               .attr("y", (d) => @y(d.val))
               .attr("height", (d) => @height - @y(d.val))
+              .style("fill", (d) => @opts.fill(d))
               .on('click', (d) => if @opts.click? then @opts.click(d))
 
 window.BarGraph = BarGraph
