@@ -131,6 +131,6 @@ class Print
                     dest.attr(a, m[1] * 10)       # Assume 10px font-size.  HACK
             )
         else if (['rect','line','path'].indexOf(src.node().tagName)>=0)
-            ['fill','stroke','fill-opacity'].forEach((a) => dest.style(a, src.style(a)))
+            ['fill','stroke','fill-opacity','display'].forEach((a) => dest.style(a, src.style(a)))
 
 window.Print = Print

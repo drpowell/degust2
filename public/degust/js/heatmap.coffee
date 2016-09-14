@@ -137,9 +137,10 @@ class Heatmap
                     .attr("class","arrowHead");
 
     resize: () ->
-        @opts.width = d3.select(@opts.elem).node().clientWidth - 20;
+        if !@_enabled
+            return
+        @opts.width = d3.max([0, d3.select(@opts.elem).node().clientWidth - 20])
         @info.attr("x", @opts.width-200)
-        @legend.attr("width", @opts.width)
         @_redraw_all();
 
     # Enable/disable the heatmap.  When disabled it is hidden and does not update
@@ -152,8 +153,15 @@ class Heatmap
         else
             @_enabled
 
+    # Return a copy of the SVG with styles attached from the stylesheet
+    _get_svg: () ->
+        svg = d3.select(@svg.node().cloneNode(true))
+        svg.attr('class','');
+        Print.copy_svg_style_deep(@svg, svg)
+        svg.node()
+
     _make_menu: (el) ->
-        print_menu = (new Print(@svg, "heatmap")).menu()
+        print_menu = (new Print((() => @_get_svg()), "heatmap")).menu()
         menu = [
                 divider: true
             ,

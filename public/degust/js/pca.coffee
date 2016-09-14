@@ -23,12 +23,18 @@ class ScatterPlot
                    .orient("left")
                    .tickSize(8,1)
 
-        @svg = d3.select(elem).append("svg")
+        @svg_real = d3.select(elem).append("svg")
                  .attr('class','scatter')
                  .attr("width", @width + margin.left + margin.right)
                  .attr("height", @height + margin.top + margin.bottom)
-                .append("g")
+        @svg = @svg_real.append("g")
                  .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        @_make_menu(elem)
+
+    _make_menu: (el) ->
+        print_menu = (new Print(@svg_real, "MDS-plot")).menu()
+        d3.select(el).on('contextmenu', d3.contextMenu(print_menu)) # attach menu to element
+
 
     # draw(data,labels)
     #   data - array of rows.  First row is all x-coordinates (dimension 1)
