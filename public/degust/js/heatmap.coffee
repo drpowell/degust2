@@ -163,12 +163,10 @@ class Heatmap
     _make_menu: (el) ->
         print_menu = (new Print((() => @_get_svg()), "heatmap")).menu()
         menu = [
-                divider: true
-            ,
                 title: 'Hide heatmap'
                 action: () => @enabled(false)
             ,
-                title: 'Toggle show replicates'
+                title: () => (if @show_replicates then "Hide" else "Show")+" replicates"
                 action: () =>
                     @show_replicates = !@show_replicates
                     @dispatch.need_update()
@@ -206,8 +204,10 @@ class Heatmap
                 action: (elm, d, i) =>
                     @get_color_scale = @_color_viridis(plasma);
                     @_redraw_all();
+            ,
+                divider: true
         ]
-        d3.select(el).on('contextmenu', d3.contextMenu(print_menu.concat(menu))) # attach menu to element
+        d3.select(el).on('contextmenu', d3.contextMenu(menu.concat(print_menu))) # attach menu to element
 
     _color_red_blue : () ->
         return d3.scale.linear()
