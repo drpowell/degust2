@@ -115,9 +115,11 @@ class PCA
 
 class GenePCA
     constructor: (@opts) ->
-        @scatter = new ScatterPlot(@opts.elem)
+        div1 = d3.select(@opts.elem).append("div")
+        div2 = d3.select(@opts.elem).append("div")
+        @scatter = new ScatterPlot(div1.node())
         @barGraph = new BarGraph(
-                           elem: @opts.elem
+                           elem: div2.node()
                            title: "% variance by MDS dimension"
                            xlabel: "Dimension"
                            ylabel: "% variance"

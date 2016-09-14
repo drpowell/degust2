@@ -153,7 +153,7 @@ class Heatmap
             @_enabled
 
     _make_menu: (el) ->
-        print_menu = [] #(new Print(@svg, "heatmap")).menu()
+        print_menu = (new Print(@svg, "heatmap")).menu()
         menu = [
                 divider: true
             ,

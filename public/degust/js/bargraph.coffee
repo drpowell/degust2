@@ -37,12 +37,16 @@ class BarGraph
                    .orient("left")
                    .tickSize(8,1)
 
-        @svg = d3.select(@opts.elem).append("svg")
+        @svg_real = d3.select(@opts.elem).append("svg")
                  .attr('class','bar-chart')
                  .attr("width", @width + margin.left + margin.right)
                  .attr("height", @height + margin.top + margin.bottom)
-                .append("g")
-                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        @svg = @svg_real.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        @_make_menu(@opts.elem)
+
+    _make_menu: (el) ->
+        print_menu = (new Print(@svg_real, @opts.title)).menu()
+        d3.select(el).on('contextmenu', d3.contextMenu(print_menu)) # attach menu to element
 
     draw: (data) ->
         @svg.selectAll("*").remove()
@@ -91,7 +95,7 @@ class BarGraph
               .attr("width", (d) => if d.width then @x(d.width) else @x.rangeBand())
               .attr("y", (d) => @y(d.val))
               .attr("height", (d) => @height - @y(d.val))
-              .style("fill", (d) => @opts.fill(d))
+              .attr("fill", (d) => @opts.fill(d))
               .on('click', (d) => if @opts.click? then @opts.click(d))
 
 window.BarGraph = BarGraph
