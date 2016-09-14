@@ -82,6 +82,8 @@ a.show-r-code, a.show-heatmap, a.update-link {
 .pca-opts { border-top: solid 1px black; margin-top: 5px}
 .pca-opts .pca-title { font-size: 10pt; font-weight: bold; margin-bottom: 3px; }
 
+.warning { background-color: red; }
+
 /* Tour ***********************************************************************/
 .popover.wide { max-width: 460px; }
 

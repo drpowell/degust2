@@ -390,44 +390,57 @@ update_from_link = () ->
 
 set_plot = (typ) ->
     switch typ
-        when 'mds'       then activate_pca_plot() ; true
-        when 'ma'        then activate_ma_plot() ; true
-        when 'parcoords' then activate_parcoords() ; true
-        else false
+        when 'mds'       then plot=pca_plot; activate=activate_pca_plot()
+        when 'ma'        then plot=ma_plot; activate=activate_ma_plot()
+        when 'parcoords' then plot=parcoords; activate=activate_parcoords()
+    if expr_plot != plot
+        activate()
+        may_warn_mds()
 
+may_warn_mds = () ->
+    if (expr_plot == pca_plot)
+        $('.fdr-fld').toggleClass('warning', fdrThreshold<1)
+        $('.fc-fld').toggleClass('warning', fcThreshold>0)
+    else
+        $('.fdr-fld').toggleClass('warning', false)
+        $('.fc-fld').toggleClass('warning', false)
 
 get_state = () ->
-    plot = 
+    plot =
         if $('#select-pc').hasClass('active')
-            'parcoords' 
+            'parcoords'
         else if $('#select-ma').hasClass('active')
             'ma'
         else if $('#select-pca').hasClass('active')
             'mds'
     state = {}
     state.plot = plot
-    state.show_counts = show_counts if show_counts != 'no'
-    state.fdrThreshold = fdrThreshold  if fdrThreshold!=1
-    state.fcThreshold = fcThreshold if fcThreshold!=0
+    def = (val, def) -> if val==def then null else val
+    state.show_counts = def(show_counts,'no')
+    state.fdrThreshold = def(fdrThreshold,1)
+    state.fcThreshold = def(fcThreshold,0)
     fc_rel = $('select#fc-relative option:selected').val()
-    state.fc_relative = fc_rel if fc_rel!=0
+    state.fc_relative = def(+fc_rel, 0)
     if plot=='mds'
         state.numGenesThreshold = numGenesThreshold
         state.skipGenesThreshold = skipGenesThreshold
         state.pcaDimension = pcaDimension
     # if plot=='ma'
     #     ex = ma_plot.brush_extent()
-    state.searchStr = searchStr if searchStr
+    state.searchStr = def(searchStr,"")
 
     return state
 
 set_state = (state) ->
-    set_state(state.plot) if state.plot?
+    if state.plot?
+        set_plot(state.plot)
+    else
+        set_plot(get_default_plot_typ())
 
     # if state.plot=='ma' && state.ma_brush?
     #     ma_plot.brush_extent(state.ma_brush)
 
-    fdrSlider.set_val(state.fdrThreshold) if state.fdrThreshold?
+    fdrSlider.set_val(state.fdrThreshold, true) if state.fdrThreshold?
     fcSlider.set_val(state.fcThreshold, true) if state.fcThreshold?
 
     if state.show_counts?
@@ -435,13 +448,11 @@ set_state = (state) ->
         update_flags()
         gene_table.invalidate()
 
-    numGenesSlider.set_val(state.numGenesThreshold, true) if state.numGenesSlider?
-    skipGenesSlider.set_val(state.skipGenesSlider, true) if state.skipGenesSlider?
-    pcaDimsSlider.set_val(state.pcaDimension, true) if state.pcaDimension?
+    numGenesSlider.set_val(+state.numGenesThreshold, true) if state.numGenesSlider?
+    skipGenesSlider.set_val(+state.skipGenesSlider, true) if state.skipGenesSlider?
+    pcaDimsSlider.set_val(+state.pcaDimension, true) if state.pcaDimension?
 
-    if state.searchStr
-        $(".tab-search input").val(state.searchStr)
-        gene_table.refresh()
+    update_search_str(state.searchStr, true) if (state.searchStr?)
 
 
 activate_parcoords = () ->
@@ -667,13 +678,18 @@ expr_filter = (row) ->
 
     true
 
+update_search_str = (str, fillbox=false) ->
+    searchStr = str.toLowerCase()
+    $(".tab-search input").toggleClass('active', searchStr != "")
+    gene_table.refresh()
+    if (fillbox)
+        $(".tab-search input").val(str)
+
 init_search = () ->
     $(".tab-search input").keyup (e) ->
                     Slick.GlobalEditorLock.cancelCurrentEdit()
                     this.value = "" if e.which == 27     # Clear on "Esc"
-                    searchStr = this.value.toLowerCase()
-                    $(this).toggleClass('active', searchStr != "")
-                    gene_table.refresh()
+                    update_search_str(this.value)
 
 init_download_link = () ->
     $('a#csv-download').on('click', (e) ->
@@ -714,11 +730,12 @@ init_slider = () ->
              n = Number(v)
              !(isNaN(n) || n<0 || n>1)
           on_change: (v) ->
-             Slick.GlobalEditorLock.cancelCurrentEdit()
-             if (fdrThreshold != v)
-               window.clearTimeout(h_runfilters)
-               h_runfilters = window.setTimeout(redraw_plot, 10)
-               fdrThreshold = v
+            Slick.GlobalEditorLock.cancelCurrentEdit()
+            if (fdrThreshold != v)
+                window.clearTimeout(h_runfilters)
+                h_runfilters = window.setTimeout(redraw_plot, 10)
+                fdrThreshold = v
+                may_warn_mds()
     )
     $('.shortcut-fdr a').click((e) -> e.preventDefault(); fdrSlider.set_val($(this).data('val'), true))
 
@@ -736,6 +753,7 @@ init_slider = () ->
                window.clearTimeout(h_runfilters)
                h_runfilters = window.setTimeout(redraw_plot, 10)
                fcThreshold = v
+               may_warn_mds()
     )
     $('.shortcut-fc a').click((e) -> e.preventDefault(); fcSlider.set_val($(this).data('val'), true))
 
@@ -875,8 +893,7 @@ process_dge_data = (data, columns) ->
         $('.show-counts-opt').show()
         $('#select-pca').show()
 
-    set_plot(get_default_plot_typ())
-    update_from_link() 
+    update_from_link()
 
     # First time throught?  Setup the tutorial tour
     if !g_tour_setup
@@ -1000,7 +1017,7 @@ init_page = (use_backend) ->
 
     g_backend.request_init_data()
 
-    $(window).bind( 'hashchange', update_from_link )
+    #$(window).bind( 'hashchange', update_from_link )
     $(window).bind('resize', () -> heatmap.resize())
 
 init = () ->
