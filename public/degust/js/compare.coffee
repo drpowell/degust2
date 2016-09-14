@@ -990,6 +990,8 @@ init_page = (use_backend) ->
 
     $('a.p-value-histogram').click((e) -> e.preventDefault(); QC.pvalue_histogram(g_data))
     $('a.bargraph-libsize').click((e) -> e.preventDefault(); QC.library_size_bargraph(g_data))
+    $('a.expression-boxplot').click((e) -> e.preventDefault(); QC.expression_boxplot(g_data))
+
     init_charts()
     init_search()
     init_slider()

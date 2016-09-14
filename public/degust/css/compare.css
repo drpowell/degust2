@@ -214,6 +214,14 @@ a.show-r-code, a.show-heatmap, a.update-link {
     padding: 2px;
 }
 
+/* Boxplot (also see d3.boxplot.css) *****************************************************/
+
+.expression-boxplot .axis path, .expression-boxplot .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
 /* Print overlay ***********************************************************************/
 .print-popup {
         position: absolute;
