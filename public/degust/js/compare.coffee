@@ -988,6 +988,7 @@ init_page = (use_backend) ->
     $('a.show-r-code').click((e) -> e.preventDefault(); show_r_code())
     $('a.update-link').click((e) -> e.preventDefault(); update_link())
 
+    $('a.p-value-histogram').click((e) -> e.preventDefault(); QC.pvalue_histogram(g_data))
     init_charts()
     init_search()
     init_slider()
