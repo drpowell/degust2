@@ -723,9 +723,13 @@ init_download_link = () ->
         e.preventDefault()
         items = gene_table.get_data()
         return if items.length==0
-        cols = g_data.columns_by_type(['info','fc_calc','count','fdr'])
-        keys = cols.map((c) -> c.name)
-        rows=items.map( (r) -> cols.map( (c) -> r[c.idx] ) )
+        cols = g_data.columns_by_type(['info','fc_calc','count','fdr','avg'])
+        count_cols = g_data.columns_by_type('count')
+        keys = cols.map((c) -> c.name).concat(count_cols.map((c) -> c.name+" CPM"))
+        rows = items.map( (r) ->
+            cpms = count_cols.map((c) -> (r[c.idx]/(g_data.get_total(c)/1000000.0)).toFixed(3))
+            cols.map( (c) -> r[c.idx] ).concat(cpms)
+        )
         window.open("data:text/csv,"+escape(d3.csv.format([keys].concat(rows))), "file.csv")
     )
 
