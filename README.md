@@ -1,10 +1,6 @@
 # Degust 2
 
 
-## Technology
-
-Backend based on skeleton [Drywall](https://github.com/jedireza/drywall/)
-
 ## Requirements
 
 You need [Node.js](http://nodejs.org/download/) and
@@ -13,7 +9,7 @@ You need [Node.js](http://nodejs.org/download/) and
 ## Installation
 
 ```bash
-$ git clone FIXME && cd ./degust
+$ git clone https://github.com/drpowell/degust2 && cd ./degust2
 $ npm install
 ```
 
