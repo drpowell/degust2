@@ -1,6 +1,6 @@
 class GeneExpression
     constructor: (@opts) ->
-        @width = d3.select(@opts.elem).node().clientWidth
+        @width = @opts.width || d3.select(@opts.elem).node().clientWidth
         @height = 300
         @margin_l = 80
         @margin_b = 120

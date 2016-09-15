@@ -234,6 +234,8 @@ a.show-r-code, a.show-heatmap, a.update-link {
 
 .strip-chart .axis { font: 10px sans-serif; }
 
+.single-gene-expr { display: none; }   /* Hide this on startup */
+
 .single-gene-expr div.tooltip {
   position: absolute;
   text-align: center;

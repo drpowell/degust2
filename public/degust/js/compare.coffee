@@ -616,6 +616,7 @@ init_charts = () ->
 
     gene_expr = new GeneExpression(
         elem: '.single-gene-expr'
+        width: 233
     )
 
 
