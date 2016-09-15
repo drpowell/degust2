@@ -285,7 +285,8 @@ colour_by_pval = (col) ->
 parcoords = null
 ma_plot = null
 pca_plot = null
-expr_plot = null    # Actually parcoords OR ma_plot depending which is active
+current_plot = null    # parcoords OR ma_plot OR pca_plot depending which is active
+gene_expr = null
 
 gene_table = null
 kegg = null
@@ -324,17 +325,18 @@ kegg_mouseover = (obj) ->
     return if ec_col==null
     for row in g_data.get_data()
         rows.push(row) if row[ec_col] == ec
-    expr_plot.highlight(rows)
+    current_plot.highlight(rows)
 
 # highlight parallel coords (and/or kegg)
 gene_table_mouseover = (item) ->
-    expr_plot.highlight([item])
+    current_plot.highlight([item])
     ec_col = g_data.column_by_type('ec')
     kegg.highlight(item[ec_col])
     heatmap.highlight([item])
+    gene_expr.select(g_data, [item])
 
 gene_table_mouseout = () ->
-    expr_plot.unhighlight()
+    current_plot.unhighlight()
     $('#gene-info').html('')
     kegg.unhighlight()
     heatmap.unhighlight()
@@ -390,15 +392,15 @@ update_from_link = () ->
 
 set_plot = (typ) ->
     switch typ
-        when 'mds'       then plot=pca_plot; activate=activate_pca_plot()
-        when 'ma'        then plot=ma_plot; activate=activate_ma_plot()
-        when 'parcoords' then plot=parcoords; activate=activate_parcoords()
-    if expr_plot != plot
+        when 'mds'       then plot=pca_plot; activate=activate_pca_plot
+        when 'ma'        then plot=ma_plot; activate=activate_ma_plot
+        when 'parcoords' then plot=parcoords; activate=activate_parcoords
+    if current_plot != plot
         activate()
         may_warn_mds()
 
 may_warn_mds = () ->
-    if (expr_plot == pca_plot)
+    if (current_plot == pca_plot)
         $('.fdr-fld').toggleClass('warning', fdrThreshold<1)
         $('.fc-fld').toggleClass('warning', fcThreshold>0)
     else
@@ -429,6 +431,8 @@ get_state = () ->
     #     ex = ma_plot.brush_extent()
     state.searchStr = def(searchStr,"")
 
+    state.single_gene_expr = def($('#select-single-gene-expr').hasClass('active'), false)
+
     return state
 
 set_state = (state) ->
@@ -454,10 +458,27 @@ set_state = (state) ->
 
     update_search_str(state.searchStr, true) if (state.searchStr?)
 
+    if state.single_gene_expr
+        activate_single_gene_expr()
+    else
+        activate_options()
+
+
+activate_options = () ->
+    $('#select-options').addClass('active')
+    $('#select-single-gene-expr').removeClass('active')
+    $('.options').show()
+    $('.single-gene-expr').hide()
+
+activate_single_gene_expr = () ->
+    $('#select-single-gene-expr').addClass('active')
+    $('#select-options').removeClass('active')
+    $('.options').hide()
+    $('.single-gene-expr').show()
 
 activate_parcoords = () ->
     may_set_plot_var('parcoords')
-    expr_plot = parcoords
+    current_plot = parcoords
     $('#dge-ma,#dge-pca').hide()
     $('#dge-pc').show()
     $('#select-pc').addClass('active')
@@ -469,7 +490,7 @@ activate_parcoords = () ->
 
 activate_ma_plot = () ->
     may_set_plot_var('ma')
-    expr_plot = ma_plot
+    current_plot = ma_plot
     $('#dge-pc,#dge-pca').hide()
     $('#dge-ma').show()
     $('#select-ma').addClass('active')
@@ -481,7 +502,7 @@ activate_ma_plot = () ->
 
 activate_pca_plot = () ->
     may_set_plot_var('mds')
-    expr_plot = pca_plot
+    current_plot = pca_plot
     $('#dge-pc,#dge-ma').hide()
     $('#dge-pca').show()
     $('#select-pca').addClass('active')
@@ -517,7 +538,7 @@ init_charts = () ->
         )
 
     ma_plot = new MAPlot({elem: '#dge-ma', filter: expr_filter})
-    ma_plot.on("mouseover", (rows) -> heatmap.highlight(rows))
+    ma_plot.on("mouseover", (rows) -> heatmap.highlight(rows); gene_expr.select(g_data, rows))
     ma_plot.on("mouseout", () -> heatmap.unhighlight())
 
     pca_plot = new GenePCA(
@@ -537,7 +558,7 @@ init_charts = () ->
     kegg = new Kegg(
         elem: 'div#kegg-image'
         mouseover: kegg_mouseover
-        mouseout: () -> expr_plot.unhighlight()
+        mouseout: () -> current_plot.unhighlight()
         )
 
     # update grid on brush
@@ -580,17 +601,22 @@ init_charts = () ->
         show_elem: '.show-heatmap'
     )
     heatmap.on("mouseover", (d) ->
-        expr_plot.highlight([d])
+        current_plot.highlight([d])
         msg = ""
         for col in g_data.columns_by_type(['info'])
           msg += "<span class='lbl'>#{col.name}: </span><span>#{d[col.idx]}</span>"
         $('#heatmap-info').html(msg)
+        gene_expr.select(g_data, [d])
     )
     heatmap.on("mouseout", (d) ->
-        expr_plot.unhighlight()
+        current_plot.unhighlight()
         $('#heatmap-info').html("")
     )
     heatmap.on("need_update", () -> update_data())
+
+    gene_expr = new GeneExpression(
+        elem: '.single-gene-expr'
+    )
 
 
 comparer = (x,y) -> (if x == y then 0 else (if x > y then 1 else -1))
@@ -717,7 +743,7 @@ init_genesets = () ->
     );
 
 redraw_plot = () ->
-    expr_plot.brush()
+    current_plot.brush()
 
 init_slider = () ->
     # wire up the slider to apply the filter to the model
@@ -921,10 +947,10 @@ update_data = () ->
     color = colour_by_pval(pval_col)
 
 
-    if expr_plot == parcoords
+    if current_plot == parcoords
         extent = ParCoords.calc_extent(g_data.get_data(), dims)
         parcoords.update_data(g_data.get_data(), dims, extent, color)
-    else if expr_plot == ma_plot
+    else if current_plot == ma_plot
         ma_fc = $('select#ma-fc-col option:selected').val()
         ma_fc = g_data.columns_by_type(['fc','primary'])[ma_fc].name
         col = g_data.columns_by_type('fc_calc').filter((c) -> c.name == ma_fc)
@@ -933,7 +959,7 @@ update_data = () ->
                             color,
                             g_data.columns_by_type('info'),
                             pval_col)
-    else if expr_plot == pca_plot
+    else if current_plot == pca_plot
         cols = g_data.columns_by_type('fc_calc').map((c) -> c.name)
         count_cols = g_data.columns_by_type('count').filter((c) -> cols.indexOf(c.parent)>=0)
         pca_plot.update_data(g_data, count_cols)
@@ -953,7 +979,7 @@ update_data = () ->
         heatmap.update_columns(g_data, heatmap_dims, centre)
 
     # Ensure the brush callbacks are called (updates heatmap & table)
-    expr_plot.brush()
+    current_plot.brush()
 
 show_r_code = () ->
     g_backend.request_r_code((d) ->
@@ -999,9 +1025,12 @@ init_page = (use_backend) ->
 
     $("select#kegg").change(kegg_selected)
 
-    $('#select-pc a').click((e) ->  e.preventDefault(); activate_parcoords())
-    $('#select-ma a').click((e) ->  e.preventDefault(); activate_ma_plot())
-    $('#select-pca a').click((e) -> e.preventDefault(); activate_pca_plot())
+    $('#select-pc a').click((e) ->  e.preventDefault(); set_plot('parcoords'))
+    $('#select-ma a').click((e) ->  e.preventDefault(); set_plot('ma'))
+    $('#select-pca a').click((e) -> e.preventDefault(); set_plot('mds'))
+    $('#select-options a').click((e) ->  e.preventDefault(); activate_options())
+    $('#select-single-gene-expr a').click((e) -> e.preventDefault(); activate_single_gene_expr())
+
     $('a.show-r-code').click((e) -> e.preventDefault(); show_r_code())
     $('a.update-link').click((e) -> e.preventDefault(); update_link())
 
