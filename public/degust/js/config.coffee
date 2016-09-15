@@ -46,6 +46,16 @@ optional_number = (obj, fld, str) ->
     else
         delete obj[fld]
 
+check_conditon_names = (settings) ->
+    invalid = []
+    for rep in settings.replicates
+        invalid.push(rep[0]) if (rep[0] in column_keys)
+    if (invalid.length == 0)
+        false
+    else
+        msgs = invalid.map((c) -> "ERROR : Cannot use condition name '#{c}', it is column name")
+        msgs.join("<br/>")
+
 save = (ev) ->
     ev.preventDefault()
     mod_settings.name = $("input.name").val()
@@ -55,6 +65,15 @@ save = (ev) ->
         delete mod_settings.link_url
     conditions_to_settings()
     mod_settings.csv_format = csv_or_tab()=='CSV'
+
+    err = check_conditon_names(mod_settings)
+    if err
+        $('#saving-modal .modal-body').html('<div class="alert alert-danger">' + err + '</div>')
+        $('#saving-modal').modal({'backdrop': true, 'keyboard' : true})
+        $('#saving-modal .view').hide()
+        $('#saving-modal .modal-footer').show()
+        $('#saving-modal #close-modal').click( () -> $('#saving-modal').modal('hide'))
+        return
 
     optional_number(mod_settings, "min_counts", $("input.min-counts").val())
     optional_number(mod_settings, "min_cpm", $("input.min-cpm").val())
@@ -71,7 +90,7 @@ save = (ev) ->
         data: {settings: JSON.stringify(mod_settings)},
         dataType: 'json'
     }).done((x) ->
-        $('#saving-modal .modal-body').html("Save successful.")
+        $('#saving-modal .modal-body').html("<div class='alert alert-success'>Save successful.</div>")
         $('#saving-modal .view').show()
      ).fail((x) ->
         log_error("ERROR",x)
