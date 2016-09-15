@@ -718,20 +718,32 @@ init_search = () ->
                     this.value = "" if e.which == 27     # Clear on "Esc"
                     update_search_str(this.value)
 
-init_download_link = () ->
-    $('a#csv-download').on('click', (e) ->
-        e.preventDefault()
-        items = gene_table.get_data()
-        return if items.length==0
-        cols = g_data.columns_by_type(['info','fc_calc','count','fdr','avg'])
-        count_cols = g_data.columns_by_type('count')
-        keys = cols.map((c) -> c.name).concat(count_cols.map((c) -> c.name+" CPM"))
-        rows = items.map( (r) ->
-            cpms = count_cols.map((c) -> (r[c.idx]/(g_data.get_total(c)/1000000.0)).toFixed(3))
-            cols.map( (c) -> r[c.idx] ).concat(cpms)
-        )
-        window.open("data:text/csv,"+escape(d3.csv.format([keys].concat(rows))), "file.csv")
+do_download = (csv) ->
+    items = gene_table.get_data()
+    return if items.length==0
+    cols = g_data.columns_by_type(['info','fc_calc','count','fdr','avg'])
+    count_cols = g_data.columns_by_type('count')
+    keys = cols.map((c) -> c.name).concat(count_cols.map((c) -> c.name+" CPM"))
+    rows = items.map( (r) ->
+        cpms = count_cols.map((c) -> (r[c.idx]/(g_data.get_total(c)/1000000.0)).toFixed(3))
+        cols.map( (c) -> r[c.idx] ).concat(cpms)
     )
+    filename = if csv then "dge.csv" else "dge.tsv"
+    fmt = if csv then d3.csv.format else d3.tsv.format
+    encodedUri = encodeURIComponent(fmt([keys].concat(rows)))
+
+    link = document.createElement("a")
+    link.setAttribute("href", 'data:attachment/csv,' + encodedUri)
+    link.setAttribute("download", filename)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+
+
+init_download_link = () ->
+    $('a#csv-download').on('click', (e) -> e.preventDefault(); do_download(true))
+    $('a.download-csv').on('click', (e) -> e.preventDefault(); do_download(true))
+    $('a.download-tsv').on('click', (e) -> e.preventDefault(); do_download(false))
 
 init_genesets = () ->
     $('.geneset-save').on('click', () ->

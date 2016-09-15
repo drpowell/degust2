@@ -27,8 +27,8 @@
 .weights .val { width:20px; width: 50px; display: inline-block;}
 .weights-toggle { margin-top: 8px; font-size: 10px; }
 
-
-a#csv-download { font-size: 9pt; float: right; margin: -7px 30px 0 0; }
+div#csv-download-div { float: right; margin: -7px 30px 0 0; }
+a#csv-download { font-size: 9pt; }
 
 .conditions { display: none; }
 .hide { display: none !important; }
