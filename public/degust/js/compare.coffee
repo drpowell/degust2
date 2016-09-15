@@ -718,7 +718,19 @@ init_search = () ->
                     this.value = "" if e.which == 27     # Clear on "Esc"
                     update_search_str(this.value)
 
-do_download = (csv) ->
+# Format data as ODF as used by GenePattern
+# http://software.broadinstitute.org/cancer/software/genepattern/file-formats-guide#ODF
+odf_fmt = (cols,rows) ->
+    hdr = ["ODF 1.0",
+           "HeaderLines=4",
+           "Model= Dataset",
+           "DataLines="+rows.length,
+           "COLUMN_TYPES: "+cols.map((c)->if c.type=='info' then "String" else "double").join("\t"),
+           "COLUMN_NAMES: "+cols.map((c)->c.name).join("\t"),
+          ]
+    hdr.concat(rows.map((r) -> r.join("\t"))).join("\n")
+
+do_download = (fmt) ->
     items = gene_table.get_data()
     return if items.length==0
     cols = g_data.columns_by_type(['info','fc_calc','count','fdr','avg'])
@@ -728,12 +740,19 @@ do_download = (csv) ->
         cpms = count_cols.map((c) -> (r[c.idx]/(g_data.get_total(c)/1000000.0)).toFixed(3))
         cols.map( (c) -> r[c.idx] ).concat(cpms)
     )
-    filename = if csv then "dge.csv" else "dge.tsv"
-    fmt = if csv then d3.csv.format else d3.tsv.format
-    encodedUri = encodeURIComponent(fmt([keys].concat(rows)))
+    mimetype = 'data:attachment/csv'
+    switch fmt
+        when 'csv' then filename='dge.csv'; result=d3.csv.format([keys].concat(rows))
+        when 'tsv' then filename='dge.tsv'; result=d3.tsv.format([keys].concat(rows))
+        when 'odf'
+            mimetype = 'data:attachment/text'
+            filename='dge.odf'
+            cols_all = cols.concat(count_cols.map((c) -> {type:'cpm', name: c.name+" CPM"}))
+            result=odf_fmt(cols_all, rows)
 
+    encodedUri = encodeURIComponent(result)
     link = document.createElement("a")
-    link.setAttribute("href", 'data:attachment/csv,' + encodedUri)
+    link.setAttribute("href", mimetype + ',' + encodedUri)
     link.setAttribute("download", filename)
     document.body.appendChild(link)
     link.click()
@@ -741,9 +760,10 @@ do_download = (csv) ->
 
 
 init_download_link = () ->
-    $('a#csv-download').on('click', (e) -> e.preventDefault(); do_download(true))
-    $('a.download-csv').on('click', (e) -> e.preventDefault(); do_download(true))
-    $('a.download-tsv').on('click', (e) -> e.preventDefault(); do_download(false))
+    $('a#csv-download').on('click', (e) -> e.preventDefault(); do_download('csv'))
+    $('a.download-csv').on('click', (e) -> e.preventDefault(); do_download('csv'))
+    $('a.download-tsv').on('click', (e) -> e.preventDefault(); do_download('tsv'))
+    $('a.download-odf').on('click', (e) -> e.preventDefault(); do_download('odf'))
 
 init_genesets = () ->
     $('.geneset-save').on('click', () ->
