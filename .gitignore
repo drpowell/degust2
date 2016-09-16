@@ -8,3 +8,5 @@ node_modules/*
 .nodemonignore
 /uploads
 /cache
+public/degust/*.js
+public/degust/css/lib.css
