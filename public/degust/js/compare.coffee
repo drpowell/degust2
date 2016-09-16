@@ -386,16 +386,16 @@ may_set_plot_var = (typ) ->
 update_link = () ->
     set_hash_var(get_state())
 
-update_from_link = () ->
-    set_state(get_hash_vars())
+update_from_link = (force_update) ->
+    set_state(get_hash_vars(), force_update)
 
 
-set_plot = (typ) ->
+set_plot = (typ, force_update) ->
     switch typ
         when 'mds'       then plot=pca_plot; activate=activate_pca_plot
         when 'ma'        then plot=ma_plot; activate=activate_ma_plot
         when 'parcoords' then plot=parcoords; activate=activate_parcoords
-    if current_plot != plot
+    if (current_plot != plot || force_update)
         activate()
         may_warn_mds()
 
@@ -435,11 +435,11 @@ get_state = () ->
 
     return state
 
-set_state = (state) ->
+set_state = (state, force_update) ->
     if state.plot?
-        set_plot(state.plot)
+        set_plot(state.plot, force_update)
     else
-        set_plot(get_default_plot_typ())
+        set_plot(get_default_plot_typ(), force_update)
 
     # if state.plot=='ma' && state.ma_brush?
     #     ma_plot.brush_extent(state.ma_brush)
@@ -956,7 +956,7 @@ process_dge_data = (data, columns) ->
         $('.show-counts-opt').show()
         $('#select-pca').show()
 
-    update_from_link()
+    update_from_link(true)
 
     # First time throught?  Setup the tutorial tour
     if !g_tour_setup
