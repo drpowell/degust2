@@ -1,6 +1,10 @@
 var path = require('path');
 
 module.exports = function(grunt) {
+
+  grunt.config('env', grunt.option('env') || process.env.GRUNT_ENV || 'development');
+  grunt.config('compress', grunt.config('env') === 'production');
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     copy: {
@@ -42,6 +46,22 @@ module.exports = function(grunt) {
             expand: true, cwd: 'node_modules/underscore/',
             src: ['underscore.js'], dest: 'public/vendor/underscore/'
           }
+        ]
+      },
+      degust: {
+        files: [
+          {
+            expand: true, cwd: 'public/degust',
+            src: ['css/*.css','css/images/**','images/**'], dest: 'public/degust-dist/'
+          },
+        ]
+      },
+      degust_prod: {
+        files: [
+          {
+            expand: true, cwd: 'public/degust-dist',
+            src: ['*.js'], dest: 'public/degust/'
+          },
         ]
       }
     },
@@ -105,7 +125,7 @@ module.exports = function(grunt) {
       basic: {
         options: {
           transforms: ['coffeeify','hbsfy'],
-          debug: true
+          debug: !grunt.config('compress')
         },
         files: [
           {
@@ -129,7 +149,7 @@ module.exports = function(grunt) {
     },
     uglify: {
       options: {
-        sourceMap: true,
+        sourceMap: !grunt.config('compress'),
         sourceMapName: function(filePath) {
           return filePath + '.map';
         }
@@ -161,7 +181,11 @@ module.exports = function(grunt) {
             'public/vendor/respond/respond.js',
             'public/layouts/ie-sucks.js'
           ],
-          'public/layouts/admin.min.js': ['public/layouts/admin.js']
+          'public/layouts/admin.min.js': ['public/layouts/admin.js'],
+          'public/degust-dist/common.min.js': ['public/degust/common.min.js'],
+          'public/degust-dist/config.min.js': ['public/degust/config.min.js'],
+          'public/degust-dist/compare.min.js': ['public/degust/compare.min.js'],
+          'public/degust-dist/slickgrid.min.js': ['public/degust/slickgrid.min.js'],
         }
       },
       views: {
@@ -266,6 +290,7 @@ module.exports = function(grunt) {
 
 
   grunt.registerTask('default', ['copy:vendor', 'newer:uglify', 'newer:less', 'newer:coffeeify', 'cssmin','concurrent']);
-  grunt.registerTask('build', ['copy:vendor', 'uglify', 'less', 'cssmin', 'coffeeify']);
+  grunt.registerTask('build', ['copy:vendor', 'uglify', 'less', 'cssmin', 'coffeeify', 'copy:degust']);
+  grunt.registerTask('production', ['copy:vendor', 'uglify', 'less', 'cssmin', 'coffeeify', 'copy:degust_prod','nodemon']);
   grunt.registerTask('lint', ['jshint']);
 };

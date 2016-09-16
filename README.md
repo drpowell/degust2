@@ -1,3 +1,4 @@
+
 # Degust 2
 
 
@@ -5,6 +6,10 @@
 
 You need [Node.js](http://nodejs.org/download/) and
 [MongoDB](http://www.mongodb.org/downloads) installed and running.
+
+You'll need npm >= 2.x
+
+You need R installed, and these packages: limma, edgeR
 
 ## Installation
 
@@ -20,6 +25,7 @@ First you need to setup your config file.
 
 ```bash
 $ mv ./config.example.js ./config.js #set mongodb and email credentials
+$ mkdir cache
 ```
 
 ## Running the app
@@ -31,3 +37,15 @@ $ npm start
 The first "social login" will become the root user
 
 
+## Production build & run with minified
+
+```bash
+$ grunt production --env=production
+```
+
+
+## Build embedding script
+
+```bash
+$ ./build-embed.sh remote
+```
