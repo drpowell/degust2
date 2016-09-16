@@ -155,10 +155,10 @@ class Heatmap
 
     # Return a copy of the SVG with styles attached from the stylesheet
     _get_svg: () ->
-        svg = d3.select(@svg.node().cloneNode(true))
-        svg.attr('class','');
-        Print.copy_svg_style_deep(@svg, svg)
-        svg.node()
+        new_svg = d3.select(@svg.node().cloneNode(true))
+        new_svg.attr('class','');
+        Print.copy_svg_style_deep(@svg, new_svg)
+        {svg: new_svg.node(), width: @svg.node().clientWidth, height: @svg.node().clientHeight}
 
     _make_menu: (el) ->
         print_menu = (new Print((() => @_get_svg()), "heatmap")).menu()

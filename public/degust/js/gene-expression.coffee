@@ -44,10 +44,10 @@ class GeneExpression
         new_svg = d3.select(svg.node().cloneNode(true))
         new_svg.attr('class','');
         Print.copy_svg_style_deep(svg, new_svg)
-        new_svg.node()
+        {svg: new_svg.node(), width: svg.node().clientWidth, height: svg.node().clientHeight}
 
     _make_menu: (el) ->
-        print_menu = (new Print((() => @_get_svg()), "Gene exression")).menu()
+        print_menu = (new Print((() => @_get_svg()), "Gene expression")).menu()
         menu = [
                 title: () => (if @show_cpm then "Plot counts" else "Plot CPM")
                 action: () =>

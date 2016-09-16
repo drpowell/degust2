@@ -176,7 +176,8 @@ class QC
             new_svg = d3.select(svg.node().cloneNode(true))
             new_svg.attr('class','');
             Print.copy_svg_style_deep(svg, new_svg)
-            new_svg.node()
+            {svg: new_svg.node(), width: svg.node().clientWidth, height: svg.node().clientHeight}
+
 
         print_menu = (new Print(get_svg, "expression-boxplot")).menu()
         d3.select(div.get(0)).on('contextmenu', d3.contextMenu(print_menu)) # attach menu to element

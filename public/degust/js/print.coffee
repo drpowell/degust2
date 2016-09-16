@@ -13,18 +13,22 @@ class Print
 
     _get_svg: () ->
         if (typeof @svg == "function")
-            @svg()
+            r=@svg()
         else if (@svg instanceof d3.selection)
-            @svg.node()
+            r=@svg.node()
         else
-            @svg
+            r=@svg
+        if ('svg' of r)
+            [r.svg, r.width, r.height]
+        else
+            [r, r.clientWidth, r.clientHeight]
 
     _to_svg: () ->
         doctype = '<?xml version="1.0" standalone="no"?>' +
                   '<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">'
 
         # serialize our SVG XML to a string.
-        source = (new XMLSerializer()).serializeToString(@_get_svg())
+        source = (new XMLSerializer()).serializeToString(@_get_svg()[0])
 
         # create a file blob of our SVG.
         blob = new Blob([ doctype + source], { type: 'image/svg+xml;charset=utf-8' })
@@ -50,12 +54,12 @@ class Print
             .style('top', (d3.event.pageY - 2) + 'px')
             .style('display', 'block')
 
-        svg = @_get_svg()
-        w=svg.clientWidth
-        h=svg.clientHeight
+        [svg,w,h] = @_get_svg()
+        w||=300
+        h||=300
 
         div.html("<form>
-                   <div><label>Width</label><input class='pr-name' value='#{@name}'/></div>
+                   <div><label>File name</label><input class='pr-name' value='#{@name}'/></div>
                    <div><label>Width</label><input class='pr-width' value='#{w}'/></div>
                    <div><label>Height</label><input class='pr-height' value='#{h}'/></div>
                    <div><button class='submit' type='submit'>Save</button><button class='cancel' type='submit'>Cancel</button></div>
@@ -84,7 +88,7 @@ class Print
         )
 
     _to_png_finish: (name,width,height) ->
-        source = (new XMLSerializer()).serializeToString(@_get_svg())
+        source = (new XMLSerializer()).serializeToString(@_get_svg()[0])
 
         canvas = document.createElement( "canvas" )
         ctx = canvas.getContext( "2d" )
