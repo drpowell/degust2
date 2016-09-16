@@ -14,5 +14,7 @@ if [ -z "$ver" ]; then
 fi
 
 cp -r public/degust-dist/ docs/dist/$ver
-rm docs/dist/latest
-(cd docs/dist ; ln -s $ver latest)
+
+# gh-pages doesn't support symlinks it seems. so copy there too
+rm -rf docs/dist/latest
+cp -r public/degust-dist/ docs/dist/latest
