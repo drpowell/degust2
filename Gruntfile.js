@@ -119,7 +119,7 @@ module.exports = function(grunt) {
     },
     // Ugly hack to force all coffee regen on change.  Not sure how to do dynamic dependencies in grunt
     remove: {
-      fileList: ['public/degust/*.min.js']
+      fileList: ['public/degust/*.js']
     },
     coffeeify: {
       basic: {
@@ -130,19 +130,19 @@ module.exports = function(grunt) {
         files: [
           {
             src: ['public/degust/js/common-req.coffee'],
-            dest: 'public/degust/common.min.js'
+            dest: 'public/degust/common.js'
           },
           {
             src: ['public/degust/js/compare-req.coffee'],
-            dest: 'public/degust/compare.min.js'
+            dest: 'public/degust/compare.js'
           },
           {
             src: ['public/degust/js/config-req.coffee'],
-            dest: 'public/degust/config.min.js'
+            dest: 'public/degust/config.js'
           },
           {
             src: ['public/degust/js/slickgrid-req.coffee'],
-            dest: 'public/degust/slickgrid.min.js'
+            dest: 'public/degust/slickgrid.js'
           },
         ]
       }
@@ -182,10 +182,10 @@ module.exports = function(grunt) {
             'public/layouts/ie-sucks.js'
           ],
           'public/layouts/admin.min.js': ['public/layouts/admin.js'],
-          'public/degust-dist/common.min.js': ['public/degust/common.min.js'],
-          'public/degust-dist/config.min.js': ['public/degust/config.min.js'],
-          'public/degust-dist/compare.min.js': ['public/degust/compare.min.js'],
-          'public/degust-dist/slickgrid.min.js': ['public/degust/slickgrid.min.js'],
+          'public/degust-dist/common.js': ['public/degust/common.js'],
+          'public/degust-dist/config.js': ['public/degust/config.js'],
+          'public/degust-dist/compare.js': ['public/degust/compare.js'],
+          'public/degust-dist/slickgrid.js': ['public/degust/slickgrid.js'],
         }
       },
       views: {
@@ -226,7 +226,7 @@ module.exports = function(grunt) {
       options: { },
       target: {
         files: {
-         'public/degust/css/lib.min.css': ['public/degust/css/lib/*.css']
+         'public/degust/css/lib.css': ['public/degust/css/lib/*.css']
         }
       }
     },
@@ -291,6 +291,6 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['copy:vendor', 'newer:uglify', 'newer:less', 'newer:coffeeify', 'cssmin','concurrent']);
   grunt.registerTask('build', ['copy:vendor', 'uglify', 'less', 'cssmin', 'coffeeify', 'copy:degust']);
-  grunt.registerTask('production', ['copy:vendor', 'uglify', 'less', 'cssmin', 'coffeeify', 'copy:degust_prod','nodemon']);
+  grunt.registerTask('production', ['copy:vendor', 'uglify', 'less', 'cssmin', 'coffeeify', 'copy:degust', 'copy:degust_prod','nodemon']);
   grunt.registerTask('lint', ['jshint']);
 };
