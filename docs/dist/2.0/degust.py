@@ -9,14 +9,14 @@ def embed(csv, args):
     <link rel="icon" type="image/png" href="images/favicon.png"/>
 
     <!-- Externals CSS -->
-    <link rel="stylesheet" href='http://drpowell.github.io/degust2/dist/latest/css/lib.min.css' />
+    <link rel="stylesheet" href='http://drpowell.github.io/degust2/dist/latest/css/lib.css' />
 
     <link rel="stylesheet" href='http://drpowell.github.io/degust2/dist/latest/css/common.css' type="text/css" />
     <link rel="stylesheet" href='http://drpowell.github.io/degust2/dist/latest/css/compare.css' type="text/css "/>
 
-    <script type="text/javascript" src='http://drpowell.github.io/degust2/dist/latest/common.min.js'></script>
-    <script type="text/javascript" src='http://drpowell.github.io/degust2/dist/latest/slickgrid.min.js'></script>
-    <script type="text/javascript" src='http://drpowell.github.io/degust2/dist/latest/compare.min.js'></script>
+    <script type="text/javascript" src='http://drpowell.github.io/degust2/dist/latest/common.js'></script>
+    <script type="text/javascript" src='http://drpowell.github.io/degust2/dist/latest/slickgrid.js'></script>
+    <script type="text/javascript" src='http://drpowell.github.io/degust2/dist/latest/compare.js'></script>
   </head>
   <body>
     <div id="replace-me" class="container">
