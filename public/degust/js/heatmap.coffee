@@ -118,6 +118,7 @@ class Heatmap
         @worker = new WorkerWrapper(calc_order, (d) => @_worker_callback(d))
         @_enabled = true
         @show_replicates = false
+        @columns_changed = false
         @_make_menu(@opts.elem)
 
     mk_highlight: () ->
@@ -340,8 +341,8 @@ class Heatmap
 
     reorder_columns: (columns) ->
         @columns = columns
-        scheduler.schedule('heatmap.render', (() => 
-            @_draw_columns()
+        @columns_changed = true
+        scheduler.schedule('heatmap.render', (() =>
             if !@_is_thinking
                 @_render_heatmap()
         ), 200)
@@ -357,9 +358,14 @@ class Heatmap
             .attr('x', @opts.label_width)
             .attr('y', (d,i) => i * @opts.h + @opts.h/2)
         @_make_legend()
+        @columns_changed = false
 
     _render_heatmap: () ->
         @_thinking(false)
+
+        if (@columns_changed)
+            @_draw_columns()
+
         kept_data = {}
         kept_data[d.id]=d for d in @data
 
