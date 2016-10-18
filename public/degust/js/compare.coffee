@@ -579,7 +579,7 @@ init_charts = () ->
         new_cols = columns.slice()
         new_cols.sort((a,b) ->
             if pos[a.parent]==pos[b.parent]
-                0 
+                0
             else if pos[a.parent] < pos[b.parent]
                 -1
             else
@@ -740,19 +740,19 @@ do_download = (fmt) ->
         cpms = count_cols.map((c) -> (r[c.idx]/(g_data.get_total(c)/1000000.0)).toFixed(3))
         cols.map( (c) -> r[c.idx] ).concat(cpms)
     )
-    mimetype = 'data:attachment/csv'
+    mimetype = 'text/csv'
     switch fmt
-        when 'csv' then filename='dge.csv'; result=d3.csv.format([keys].concat(rows))
-        when 'tsv' then filename='dge.tsv'; result=d3.tsv.format([keys].concat(rows))
+        when 'csv' then filename='degust.csv'; result=d3.csv.format([keys].concat(rows))
+        when 'tsv' then filename='degust.tsv'; result=d3.tsv.format([keys].concat(rows))
         when 'odf'
-            mimetype = 'data:attachment/text'
-            filename='dge.odf'
+            mimetype = 'text/plain'
+            filename='degust.odf'
             cols_all = cols.concat(count_cols.map((c) -> {type:'cpm', name: c.name+" CPM"}))
             result=odf_fmt(cols_all, rows)
 
-    encodedUri = encodeURIComponent(result)
+    # In future, look at this library : https://github.com/eligrey/FileSaver.js
     link = document.createElement("a")
-    link.setAttribute("href", mimetype + ',' + encodedUri)
+    link.setAttribute("href", window.URL.createObjectURL(new Blob([result], {type: mimetype})))
     link.setAttribute("download", filename)
     document.body.appendChild(link)
     link.click()
@@ -914,7 +914,7 @@ process_kegg_data = (ec_data) ->
     for row in g_data.get_data()
         have_ec[row[ec_col]]=1
 
-    ec_data.sort((a,b) -> 
+    ec_data.sort((a,b) ->
         a=a.title.toLowerCase()
         b=b.title.toLowerCase()
         if a==b then 0 else if a<b then -1 else 1
