@@ -1,3 +1,7 @@
+v2.1
+  * Fix CSV downloading in chrome
+  * Fix handling of files with NA strings
+
 v2.0
   * New build with nodejs backend.  Rudimentry support for login to track datasets
   * Added "save as SVG/PNG" to many plots (right-click)
