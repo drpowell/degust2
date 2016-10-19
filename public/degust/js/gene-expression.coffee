@@ -7,6 +7,7 @@ class GeneExpression
         @margin_t = 30
         @plot_height = @height - @margin_t - @margin_b
         @plot_width = @width - @margin_l
+        @colour = @opts.colour || d3.scale.category10()
 
         @x = d3.scale.ordinal()
               .rangeRoundBands([0, @plot_width], .1)
@@ -71,7 +72,6 @@ class GeneExpression
             {lbl: c.name, parent: c.parent, val: val}
         )
         info_cols = @data.columns_by_type('info')
-        colour = d3.scale.category10()
 
         @x.domain(vals.map((d) -> d.parent ))
         @y.domain([0, d3.max(vals, (d) -> d.val)])
@@ -108,7 +108,7 @@ class GeneExpression
             .enter().append("circle")
               .attr("class", "circle")
               .attr("r", 4)
-              .attr("fill", (d) -> colour(d.parent))
+              .attr("fill", (d) => @colour(d.parent))
               .attr("cx", (d) => @x(d.parent)+@x.rangeBand()/2 + @jitter(d))
               .attr("cy", (d) => @y(d.val))
 

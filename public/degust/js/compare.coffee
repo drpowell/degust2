@@ -317,6 +317,7 @@ searchStr = ""
 kegg_filter = []
 h_runfilters = null
 g_tour_setup = false
+g_colour_by_parent = d3.scale.category10()
 
 kegg_mouseover = (obj) ->
     ec = obj.id
@@ -544,6 +545,7 @@ init_charts = () ->
     pca_plot = new GenePCA(
         elem: '#dge-pca'
         filter: expr_filter
+        colour: g_colour_by_parent
         sel_dimension: (d) => pcaDimsSlider.set_val(+d, true)
         params: () ->
             skip: +skipGenesThreshold
@@ -617,6 +619,7 @@ init_charts = () ->
     gene_expr = new GeneExpression(
         elem: '.single-gene-expr'
         width: 233
+        colour: g_colour_by_parent
     )
 
 
@@ -1072,8 +1075,8 @@ init_page = (use_backend) ->
     $('a.update-link').click((e) -> e.preventDefault(); update_link())
 
     $('a.p-value-histogram').click((e) -> e.preventDefault(); QC.pvalue_histogram(g_data))
-    $('a.bargraph-libsize').click((e) -> e.preventDefault(); QC.library_size_bargraph(g_data))
-    $('a.expression-boxplot').click((e) -> e.preventDefault(); QC.expression_boxplot(g_data))
+    $('a.bargraph-libsize').click((e) -> e.preventDefault(); QC.library_size_bargraph(g_data, g_colour_by_parent))
+    $('a.expression-boxplot').click((e) -> e.preventDefault(); QC.expression_boxplot(g_data, g_colour_by_parent))
 
     init_charts()
     init_search()

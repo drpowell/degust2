@@ -51,7 +51,7 @@ class QC
         barGraph.draw(bins.map((b) -> {lbl: b.x, val: b.y, width: b.dx}))
         QC.overlay(div, () -> div.remove())
 
-    @library_size_bargraph: (data) ->
+    @library_size_bargraph: (data, colour) ->
         cols = data.columns_by_type('count')
         lib_sizes = cols.map((c) -> {lbl: c.name, val: data.get_total(c), parent: c.parent})
 
@@ -67,7 +67,7 @@ class QC
         )
         $("body").append(div)
 
-        colour = d3.scale.category10()
+        colour ?= d3.scale.category10()
         barGraph = new BarGraph(
                    elem: div.get(0)
                    tot_width: width
@@ -86,7 +86,7 @@ class QC
         barGraph.draw(lib_sizes)
         QC.overlay(div, () -> div.remove())
 
-    @expression_boxplot: (data) ->
+    @expression_boxplot: (data, colour) ->
         cpm = QC.get_cpm(data)
 
         margin = {top: 40, right: 50, bottom: 150, left: 50}
@@ -104,7 +104,7 @@ class QC
         )
         $("body").append(div)
 
-        colour = d3.scale.category10()
+        colour ?= d3.scale.category10()
         chart = d3.box()
                   .whiskers(iqr(1.5))
                   .width(width_box/2)

@@ -1,9 +1,13 @@
 
 class ScatterPlot
-    constructor: (elem, tot_width=570, tot_height=400) ->
+    constructor: (@opts) ->
+        elem = @opts.elem
+        tot_width = @opts.tot_width || 570
+        tot_height = @opts.tot_height || 400
         margin = {top: 20, right: 180, bottom: 40, left: 60}
         @width = tot_width - margin.left - margin.right
         @height = tot_height - margin.top - margin.bottom
+        @colour = @opts.colour || d3.scale.category10()
 
         @x = d3.scale.linear()
                .range([0, @width])
@@ -11,7 +15,6 @@ class ScatterPlot
         @y = d3.scale.linear()
                .range([@height, 0])
 
-        @color = d3.scale.category10()
 
         @xAxis = d3.svg.axis()
                    .scale(@x)
@@ -89,9 +92,9 @@ class ScatterPlot
 
         # Ensure the correct colour and text
         dots.select("circle")
-              .style("fill", (d,i) => @color(labels[i].parent))
+              .style("fill", (d,i) => @colour(labels[i].parent))
         dots.select("text")
-              .style("fill", (d,i) => @color(labels[i].parent))
+              .style("fill", (d,i) => @colour(labels[i].parent))
               .text((d,i) -> labels[i].name)
 
         # And animate the moving dots
@@ -123,7 +126,7 @@ class GenePCA
     constructor: (@opts) ->
         div1 = d3.select(@opts.elem).append("div")
         div2 = d3.select(@opts.elem).append("div")
-        @scatter = new ScatterPlot(div1.node())
+        @scatter = new ScatterPlot({elem:div1.node(), colour: @opts.colour})
         @barGraph = new BarGraph(
                            elem: div2.node()
                            title: "% variance by MDS dimension"
