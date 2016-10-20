@@ -550,7 +550,9 @@ init_charts = () ->
         params: () ->
             skip: +skipGenesThreshold
             num: +numGenesThreshold
-            dims: [+pcaDimension, +pcaDimension+1]
+            dims: [+pcaDimension, +pcaDimension+1, +pcaDimension+2]
+            plot_2d3d: $('select#mds-2d3d option:selected').val()
+
         )
     pca_plot.on("top_genes", (top) =>
         gene_table.set_data(top)
@@ -875,6 +877,9 @@ init_slider = () ->
     $('#show-counts').change((e) ->
         update_flags()
         gene_table.invalidate()
+    )
+    $('#mds-2d3d').change((e) ->
+        redraw_plot()
     )
 
 calc_kegg_colours = () ->

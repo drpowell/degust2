@@ -124,11 +124,12 @@ class PCA
 
 class GenePCA
     constructor: (@opts) ->
-        div1 = d3.select(@opts.elem).append("div")
-        div2 = d3.select(@opts.elem).append("div")
-        @scatter = new ScatterPlot({elem:div1.node(), colour: @opts.colour})
+        @div2d = d3.select(@opts.elem).append("div")
+        @div3d = d3.select(@opts.elem).append("div")
+        div_bar = d3.select(@opts.elem).append("div")
+        @scatter = new ScatterPlot({elem:@div2d.node(), colour: @opts.colour})
         @barGraph = new BarGraph(
-                           elem: div2.node()
+                           elem: div_bar.node()
                            title: "% variance by MDS dimension"
                            xlabel: "Dimension"
                            ylabel: "% variance"
@@ -154,8 +155,7 @@ class GenePCA
         PCA.variance(vals)
 
     redraw: () ->
-        {skip:skip_genes, num:num_genes, dims:dims} = @opts.params()
-        dims = [1,2] if dims.length!=2
+        {skip:skip_genes, num:num_genes, dims:dims, plot_2d3d: plot_2d3d} = @opts.params()
 
         # Log transformed counts
         kept_data = @rows.filter((d) => @opts.filter(d))
@@ -176,7 +176,7 @@ class GenePCA
         comp = numeric.transpose(pca_results.pts)
         # 'comp' now contains components.  Each row is a dimension
 
-        @scatter.draw(comp, @columns, dims)
+        @scatter_draw(plot_2d3d, comp, @columns, dims)
 
         tot_eigen = d3.sum(pca_results.eigenvalues)
         @barGraph.draw(comp[0..9].map((v,i) ->
@@ -184,6 +184,20 @@ class GenePCA
             range = pca_results.eigenvalues[i]/tot_eigen * 100
             {lbl: "#{i+1}", val: range}
         ))
+
+    scatter_draw: (plot_2d3d, comp, cols, dims) ->
+        if plot_2d3d=='2d'
+            @div2d.style("display","block")
+            @div3d.style("display","none")
+            @scatter.draw(comp,cols,dims)
+        else
+            @div2d.style("display","none")
+            @div3d.style("display","block")
+            DynamicJS.load("./three.js", () =>
+                if (!@scatter3d)
+                    @scatter3d = new Scatter3d({elem: @div3d.node(), tot_height: 400})
+                @scatter3d.update_data(comp, cols, dims)
+            )
 
     brush: () ->
         @redraw()
