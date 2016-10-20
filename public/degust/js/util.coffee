@@ -189,3 +189,32 @@ class SVG
 
 @download_svg = SVG.download_svg
 # ------------------------------------------------------------
+# Dynamic JS loading
+#
+class DynamicJS
+    @LOADED = {}
+    @LOADING = {}
+
+    @load = (src, cb) ->
+        if src of @LOADED
+            cb()
+            return
+        if src of @LOADING
+            @LOADING[src] = cb
+            return
+        head = document.getElementsByTagName('head')[0]
+        script = document.createElement('script')
+        script.type = 'text/javascript'
+        script.src = src
+        #   script.onreadystatechange= () ->
+        #       if (this.readyState == 'complete')
+        #           cb()
+        @LOADING[src] = cb
+        script.onerror = () =>
+            log_error("Unable to load : ",src)
+        script.onload = () =>
+            @LOADED[src] = true
+            @LOADING[src]()      # Call the latest callback that has been registered
+
+        head.appendChild(script);
+window.DynamicJS = DynamicJS
