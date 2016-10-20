@@ -144,6 +144,10 @@ module.exports = function(grunt) {
             src: ['public/degust/js/slickgrid-req.coffee'],
             dest: 'public/degust/slickgrid.js'
           },
+          {
+            src: ['public/degust/js/threejs-req.coffee'],
+            dest: 'public/degust/three.js'
+          },
         ]
       }
     },
@@ -186,6 +190,7 @@ module.exports = function(grunt) {
           'public/degust-dist/config.js': ['public/degust/config.js'],
           'public/degust-dist/compare.js': ['public/degust/compare.js'],
           'public/degust-dist/slickgrid.js': ['public/degust/slickgrid.js'],
+          'public/degust-dist/three.js': ['public/degust/three.js'],
         }
       },
       views: {
