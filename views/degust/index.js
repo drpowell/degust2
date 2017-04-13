@@ -137,7 +137,7 @@ exports.partialCSV = function(req, res, next){
                 return;
             }
 
-            var max_len=1024;
+            var max_len=10240;
             var buffer = new Buffer(max_len);
             fs.read(fd, buffer, 0, max_len, 0, function(err, num) {
                 res.send(buffer.toString('ascii',0,num));
