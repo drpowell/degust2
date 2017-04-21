@@ -1,3 +1,6 @@
+# This repository is deprecated
+
+**You should now use [https://github.com/drpowell/degust](https://github.com/drpowell/degust)**
 
 # Degust 2
 
